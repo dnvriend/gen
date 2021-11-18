@@ -2,7 +2,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"github.com/google/go-cmp/cmp"
@@ -114,17 +113,6 @@ func (rcv AddressList) ForEachWithLastFlag(fn func(bool, Address)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv AddressList) Find(fn func(Address) bool) (*Address, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv AddressList) Count() int {
 	return len(rcv)

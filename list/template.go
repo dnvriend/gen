@@ -109,17 +109,6 @@ func (rcv {{.TypeName}}List) ForEachWithLastFlag(fn func(bool, {{.Type}})) {
 	}
 }
 
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv {{.TypeName}}List) Find(fn func({{.Type}}) bool) (*{{.Type}}, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
-
 func (rcv {{.TypeName}}List) Count() int {
 	return len(rcv)
 }

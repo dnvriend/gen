@@ -20,14 +20,17 @@ var listCmd = &cobra.Command{
 		mapTo := cmd.GetStringArrayParam("mapto")
 		foldMapTo := cmd.GetStringArrayParam("foldmapto")
 		imports := cmd.GetStringArrayParam("import")
+
 		generated := list.Generate(packageName, typeName, mapTo, foldMapTo, imports)
 		switch {
 		case cmd.GetBoolParam("stdout"):
 			fmt.Println(generated)
 		default:
+			fileTypeName := strings.ReplaceAll(typeName, "*", "")
+			fileTypeName = strings.ReplaceAll(fileTypeName, ".", "")
 			dir, err := filepath.Abs(".")
 			cobra.CheckErr(err)
-			fileName := fmt.Sprintf("%v/%v_list.go", dir, strings.ToLower(typeName))
+			fileName := fmt.Sprintf("%v/%v_list.go", dir, strings.ToLower(fileTypeName))
 			err = SaveFile(fileName, []byte(generated))
 			cobra.CheckErr(err)
 		}

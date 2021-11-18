@@ -4,7 +4,7 @@ package main
 
 import "fmt"
 
-//go:generate gen list -p main -t Person -m Cat
+//go:generate gen list -p main -t Person
 type Person struct {
 	Name      string
 	Age       int
@@ -16,6 +16,10 @@ type Person struct {
 type Cat struct {
 	Name string
 	Age  int
+}
+
+func (rcv Cat) Miauwing() string {
+	return "miauw"
 }
 
 //go:generate gen list -p main -t Address

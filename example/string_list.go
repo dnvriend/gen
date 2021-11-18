@@ -2,7 +2,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"github.com/google/go-cmp/cmp"
@@ -114,17 +113,6 @@ func (rcv StringList) ForEachWithLastFlag(fn func(bool, string)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv StringList) Find(fn func(string) bool) (*string, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv StringList) Count() int {
 	return len(rcv)

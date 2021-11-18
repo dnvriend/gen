@@ -2,7 +2,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"github.com/google/go-cmp/cmp"
@@ -114,17 +113,6 @@ func (rcv PersonList) ForEachWithLastFlag(fn func(bool, Person)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv PersonList) Find(fn func(Person) bool) (*Person, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv PersonList) Count() int {
 	return len(rcv)
@@ -270,28 +258,4 @@ func (rcv PersonList) Intersect(xs PersonList) PersonList {
 
 func (rcv PersonList) Slice(from int, to int) PersonList {
 	return rcv[from : to+1]
-}
-
-func (rcv PersonList) MapToCat(fn func(Person) Cat) CatList {
-	ys := make([]Cat, 0)
-	for _, x := range rcv {
-		ys = append(ys, fn(x))
-	}
-	return ys
-}
-
-func (rcv PersonList) MapToWithIndexCat(fn func(int, Person) Cat) CatList {
-	ys := make([]Cat, 0)
-	for i, x := range rcv {
-		ys = append(ys, fn(i, x))
-	}
-	return ys
-}
-
-func (rcv PersonList) MapToWithLastFlagCat(fn func(bool, Person) Cat) CatList {
-	ys := make([]Cat, 0)
-	for i, x := range rcv {
-		ys = append(ys, fn(i+1 == len(rcv), x))
-	}
-	return ys
 }

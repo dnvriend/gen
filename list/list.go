@@ -34,7 +34,6 @@ func buildImports(imports []string) string {
 		Imports: collections.
 			EmptyStringList().
 			AppendAll(imports...).
-			Append("errors").
 			Append("fmt").
 			Append("strings").
 			Append("github.com/google/go-cmp/cmp").
@@ -55,8 +54,8 @@ func buildMapTo(typeName string, toType string) string {
 		ToTypeName string
 	}{
 		ToType:     toType,
-		ToTypeName: strings.Title(toType),
-		TypeName:   strings.Title(typeName),
+		ToTypeName: fixTypeName(toType),
+		TypeName:   fixTypeName(typeName),
 		Type:       typeName,
 	}
 	var buf bytes.Buffer
@@ -64,6 +63,12 @@ func buildMapTo(typeName string, toType string) string {
 		fmt.Println("generating map code: %v", err)
 	}
 	return buf.String()
+}
+
+func fixTypeName(name string) string {
+	str := strings.ReplaceAll(name, "*", "")
+	str = strings.ReplaceAll(str, ".", "")
+	return strings.Title(str)
 }
 
 func buildFoldMapTo(typeName string, toType string) string {
@@ -74,8 +79,8 @@ func buildFoldMapTo(typeName string, toType string) string {
 		ToTypeName string
 	}{
 		ToType:     toType,
-		ToTypeName: strings.Title(toType),
-		TypeName:   strings.Title(typeName),
+		ToTypeName: fixTypeName(toType),
+		TypeName:   fixTypeName(typeName),
 		Type:       typeName,
 	}
 	var buf bytes.Buffer
@@ -92,7 +97,7 @@ func buildBase(packageName string, typeName string) string {
 		Type        string
 	}{
 		PackageName: packageName,
-		TypeName:    strings.Title(typeName),
+		TypeName:    fixTypeName(typeName),
 		Type:        typeName,
 	}
 	var buf bytes.Buffer
