@@ -26,8 +26,7 @@ and/or in your code
 ```
 
 ## Build
+Clone the repository and then `go build` or `go get -u github.com/dnvriend/gen` if you just want the gen binary on your path.
 
-```
-go build
-cp go /usr/local/bin
-```
+Type `which gen` to find out where it is to uninstall it, or `rm $(which gen)` to remove it.
+
