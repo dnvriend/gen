@@ -48,15 +48,17 @@ func buildImports(imports []string) string {
 
 func buildMapTo(typeName string, toType string) string {
 	model := struct {
-		Type       string
-		TypeName   string
-		ToType     string
-		ToTypeName string
+		Type            string
+		TypeName        string
+		ToType          string
+		ToTypeName      string
+		ToShortTypeName string
 	}{
-		ToType:     toType,
-		ToTypeName: fixTypeName(toType),
-		TypeName:   fixTypeName(typeName),
-		Type:       typeName,
+		ToType:          toType,
+		ToTypeName:      toType,
+		ToShortTypeName: toShortTypeName(toType),
+		TypeName:        fixTypeName(typeName),
+		Type:            typeName,
 	}
 	var buf bytes.Buffer
 	if err := mapToTemplate.Execute(&buf, model); err != nil {
@@ -69,6 +71,12 @@ func fixTypeName(name string) string {
 	str := strings.ReplaceAll(name, "*", "")
 	str = strings.ReplaceAll(str, ".", "")
 	return strings.Title(str)
+}
+
+func toShortTypeName(name string) string {
+	return collections.EmptyStringList().
+		AppendSlice(strings.Split(name, ".")).
+		Last()
 }
 
 func buildFoldMapTo(typeName string, toType string) string {

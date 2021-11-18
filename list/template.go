@@ -257,7 +257,7 @@ func (rcv {{.TypeName}}List) Slice(from int, to int) {{.TypeName}}List {
 `))
 
 var mapToTemplate = template.Must(template.New("generated").Parse(`
-func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}(fn func({{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}(fn func({{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
 	ys := make([]{{.ToType}}, 0)
 	for _, x := range rcv {
 		ys = append(ys, fn(x))
@@ -265,7 +265,7 @@ func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}(fn func({{.Type}}) {{.ToType}}
 	return ys
 }
 
-func (rcv {{.TypeName}}List) MapToWithIndex{{.ToTypeName}}(fn func(int, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}WithIndex(fn func(int, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
 	ys := make([]{{.ToType}}, 0)
 	for i, x := range rcv {
 		ys = append(ys, fn(i, x))
@@ -273,7 +273,7 @@ func (rcv {{.TypeName}}List) MapToWithIndex{{.ToTypeName}}(fn func(int, {{.Type}
 	return ys
 }
 
-func (rcv {{.TypeName}}List) MapToWithLastFlag{{.ToTypeName}}(fn func(bool, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}WithLastFlag(fn func(bool, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
 	ys := make([]{{.ToType}}, 0)
 	for i, x := range rcv {
 		ys = append(ys, fn(i+1 == len(rcv), x))
