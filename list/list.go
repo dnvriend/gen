@@ -22,7 +22,10 @@ func Generate(packageName string, typeName string, mapTo []string, foldMapTo []s
 	switch typeName {
 	case "int":
 		builder.WriteString(buildIntListExtras())
+	case "string":
+		builder.WriteString(buildStringListExtras())
 	}
+
 	return builder.String()
 }
 
@@ -119,6 +122,14 @@ func buildIntListExtras() string {
 	var buf bytes.Buffer
 	if err := intListTemplate.Execute(&buf, nil); err != nil {
 		fmt.Println("generating int list extras code: %v", err)
+	}
+	return buf.String()
+}
+
+func buildStringListExtras() string {
+	var buf bytes.Buffer
+	if err := stringListTemplate.Execute(&buf, nil); err != nil {
+		fmt.Println("generating string list extras code: %v", err)
 	}
 	return buf.String()
 }

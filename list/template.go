@@ -315,3 +315,10 @@ func (rcv IntList) Range(from int, to int) IntList {
 	return xs
 }
 `))
+
+var stringListTemplate = template.Must(template.New("generated").Parse(`
+func (rcv StringList) Join(sep string) String {
+	str := strings.Join(rcv.ToSlice(), sep)
+	return String(str)
+}
+`))
