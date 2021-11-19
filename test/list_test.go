@@ -99,6 +99,13 @@ func TestSlice(t *testing.T) {
 	assert.Equal(t, []int{2, 3}, xs)
 }
 
+func TestHeadOption(t *testing.T) {
+	xs := EmptyIntList().AppendAll(1, 2, 3)
+	assert.Equal(t, IntSome{1}, xs.HeadOption())
+	ys := EmptyIntList()
+	assert.Equal(t, noneInt, ys.HeadOption())
+}
+
 // func TestZip(t *testing.T) {
 // 	xs := EmptyStringList().AppendAll("a", "b")
 // 	ys := EmptyStringList().AppendAll("c", "d")

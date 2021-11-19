@@ -1,10 +1,13 @@
 //go:generate gen list -p main -t int
+//go:generate gen option -p main -t int
 //go:generate gen list -p main -t string
+//go:generate gen option -p main -t string
 package main
 
 import "fmt"
 
 //go:generate gen list -p main -t Person
+//go:generate gen option -p main -t Person
 type Person struct {
 	Name      string
 	Age       int
@@ -13,6 +16,7 @@ type Person struct {
 }
 
 //go:generate gen list -p main -t Cat
+//go:generate gen option -p main -t Cat
 type Cat struct {
 	Name string
 	Age  int
@@ -23,6 +27,7 @@ func (rcv Cat) Miauwing() string {
 }
 
 //go:generate gen list -p main -t Address
+//go:generate gen option -p main -t Address
 type Address struct {
 	Street      string
 	HouseNumber int
@@ -65,7 +70,13 @@ func main() {
 		Append(smith).
 		Append(black)
 
-	fmt.Println("people contains black? ", people.Contains(black))
+	fmt.Println("people contains black?: ", people.Contains(black))
+
+	fmt.Println("is there a first person?: ", people.HeadOption().IsNotEmpty())
+
+	// it is safe the do this
+	EmptyPersonList().HeadOption().ForEach(func (p Person) {})
+	people.HeadOption().ForEach(func (p Person) { fmt.Println("The first person is: ", p)})
 
 	people.ForEach(func(p Person) {
 		fmt.Println(">Person: ", p.Name, p.Age)

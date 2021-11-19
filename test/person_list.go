@@ -2,7 +2,6 @@
 package test
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"github.com/google/go-cmp/cmp"
@@ -47,8 +46,16 @@ func (rcv PersonList) Reverse() PersonList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv PersonList) Head() Person {
 	return rcv[0] 
+}
+
+func (rcv PersonList) HeadOption() PersonOption {
+	if len(rcv) == 0 {
+		return nonePerson
+	} 
+	return OptionOfPerson(&rcv[0])
 }
 
 func (rcv PersonList) Last() Person {
@@ -114,17 +121,6 @@ func (rcv PersonList) ForEachWithLastFlag(fn func(bool, Person)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv PersonList) Find(fn func(Person) bool) (*Person, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv PersonList) Count() int {
 	return len(rcv)
@@ -280,7 +276,7 @@ func (rcv PersonList) MapToCat(fn func(Person) Cat) CatList {
 	return ys
 }
 
-func (rcv PersonList) MapToWithIndexCat(fn func(int, Person) Cat) CatList {
+func (rcv PersonList) MapToCatWithIndex(fn func(int, Person) Cat) CatList {
 	ys := make([]Cat, 0)
 	for i, x := range rcv {
 		ys = append(ys, fn(i, x))
@@ -288,7 +284,7 @@ func (rcv PersonList) MapToWithIndexCat(fn func(int, Person) Cat) CatList {
 	return ys
 }
 
-func (rcv PersonList) MapToWithLastFlagCat(fn func(bool, Person) Cat) CatList {
+func (rcv PersonList) MapToCatWithLastFlag(fn func(bool, Person) Cat) CatList {
 	ys := make([]Cat, 0)
 	for i, x := range rcv {
 		ys = append(ys, fn(i+1 == len(rcv), x))

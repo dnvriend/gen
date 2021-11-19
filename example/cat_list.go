@@ -46,8 +46,16 @@ func (rcv CatList) Reverse() CatList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv CatList) Head() Cat {
 	return rcv[0] 
+}
+
+func (rcv CatList) HeadOption() CatOption {
+	if len(rcv) == 0 {
+		return noneCat
+	} 
+	return OptionOfCat(&rcv[0])
 }
 
 func (rcv CatList) Last() Cat {

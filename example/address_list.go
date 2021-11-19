@@ -46,8 +46,16 @@ func (rcv AddressList) Reverse() AddressList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv AddressList) Head() Address {
 	return rcv[0] 
+}
+
+func (rcv AddressList) HeadOption() AddressOption {
+	if len(rcv) == 0 {
+		return noneAddress
+	} 
+	return OptionOfAddress(&rcv[0])
 }
 
 func (rcv AddressList) Last() Address {

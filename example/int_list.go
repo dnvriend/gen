@@ -46,8 +46,16 @@ func (rcv IntList) Reverse() IntList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv IntList) Head() int {
 	return rcv[0] 
+}
+
+func (rcv IntList) HeadOption() IntOption {
+	if len(rcv) == 0 {
+		return noneInt
+	} 
+	return OptionOfInt(&rcv[0])
 }
 
 func (rcv IntList) Last() int {

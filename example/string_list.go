@@ -46,8 +46,16 @@ func (rcv StringList) Reverse() StringList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv StringList) Head() string {
 	return rcv[0] 
+}
+
+func (rcv StringList) HeadOption() StringOption {
+	if len(rcv) == 0 {
+		return noneString
+	} 
+	return OptionOfString(&rcv[0])
 }
 
 func (rcv StringList) Last() string {

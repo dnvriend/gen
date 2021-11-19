@@ -3,9 +3,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type PersonList []Person
@@ -46,8 +45,16 @@ func (rcv PersonList) Reverse() PersonList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv PersonList) Head() Person {
 	return rcv[0] 
+}
+
+func (rcv PersonList) HeadOption() PersonOption {
+	if len(rcv) == 0 {
+		return nonePerson
+	} 
+	return OptionOfPerson(&rcv[0])
 }
 
 func (rcv PersonList) Last() Person {

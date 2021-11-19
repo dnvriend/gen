@@ -2,11 +2,9 @@
 package test
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type IntList []int
@@ -47,8 +45,16 @@ func (rcv IntList) Reverse() IntList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv IntList) Head() int {
 	return rcv[0] 
+}
+
+func (rcv IntList) HeadOption() IntOption {
+	if len(rcv) == 0 {
+		return noneInt
+	} 
+	return OptionOfInt(&rcv[0])
 }
 
 func (rcv IntList) Last() int {
@@ -114,17 +120,6 @@ func (rcv IntList) ForEachWithLastFlag(fn func(bool, int)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv IntList) Find(fn func(int) bool) (*int, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv IntList) Count() int {
 	return len(rcv)

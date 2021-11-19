@@ -11,10 +11,9 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "generates list golang code for type",
-	Long:  "",
+	Short: "generates List[T] code",
 	Run: func(_cmd *cobra.Command, args []string) {
-		cmd := CommandOps{_cmd}
+		cmd := ToCobraCommand(_cmd)
 		packageName := cmd.GetStringParam("package")
 		typeName := cmd.GetStringParam("type")
 		mapTo := cmd.GetStringArrayParam("mapto")

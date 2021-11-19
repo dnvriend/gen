@@ -2,7 +2,6 @@
 package test
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"github.com/google/go-cmp/cmp"
@@ -47,8 +46,16 @@ func (rcv CatList) Reverse() CatList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv CatList) Head() Cat {
 	return rcv[0] 
+}
+
+func (rcv CatList) HeadOption() CatOption {
+	if len(rcv) == 0 {
+		return noneCat
+	} 
+	return OptionOfCat(&rcv[0])
 }
 
 func (rcv CatList) Last() Cat {
@@ -114,17 +121,6 @@ func (rcv CatList) ForEachWithLastFlag(fn func(bool, Cat)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv CatList) Find(fn func(Cat) bool) (*Cat, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv CatList) Count() int {
 	return len(rcv)

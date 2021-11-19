@@ -41,8 +41,16 @@ func (rcv {{.TypeName}}List) Reverse() {{.TypeName}}List {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv {{.TypeName}}List) Head() {{.Type}} {
 	return rcv[0] 
+}
+
+func (rcv {{.TypeName}}List) HeadOption() {{.TypeName}}Option {
+	if len(rcv) == 0 {
+		return none{{.TypeName}}
+	} 
+	return OptionOf{{.TypeName}}(&rcv[0])
 }
 
 func (rcv {{.TypeName}}List) Last() {{.Type}} {
