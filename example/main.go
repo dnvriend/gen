@@ -92,4 +92,8 @@ func main() {
 			fmt.Println("  - Age: ", c.Age)
 		})
 	})
+
+	Range(0, 5).ForEach(func() {
+		fmt.Println("Foo")
+	})
 }
