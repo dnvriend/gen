@@ -3,7 +3,6 @@ package test
 
 import (
 	"github.com/google/go-cmp/cmp"
-	
 )
 
 type PersonOption interface {
@@ -44,7 +43,7 @@ func (rcv PersonNone) GetOrElse(fn func() Person) Person {
 	return fn()
 }
 
-func (rcv PersonNone) ForEach(fn func(Person)) {	
+func (rcv PersonNone) ForEach(fn func(Person)) {
 }
 
 func (rcv PersonNone) IsEmpty() bool {
@@ -92,7 +91,7 @@ func (rcv PersonSome) IsNotEmpty() bool {
 	return true
 }
 
-// alias 
+// alias
 func (rcv PersonSome) IsDefined() bool {
 	return true
 }

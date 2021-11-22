@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type PersonList []Person
@@ -48,18 +47,18 @@ func (rcv PersonList) Reverse() PersonList {
 
 // panics when the list is empty
 func (rcv PersonList) Head() Person {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv PersonList) HeadOption() PersonOption {
 	if len(rcv) == 0 {
-		return nonePerson
-	} 
+		return OptionOfPerson(nil)
+	}
 	return OptionOfPerson(&rcv[0])
 }
 
 func (rcv PersonList) Last() Person {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,16 +69,16 @@ func (rcv PersonList) Init() PersonList {
 // The rest of the collection without its first element.
 func (rcv PersonList) Tail() PersonList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv PersonList) Filter(fn func(Person) bool) PersonList {
-	ys := make([]Person, 0)
-	for _, v := range rcv {
+	ys := EmptyPersonList()
+	rcv.ForEach(func(v Person) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -90,13 +89,7 @@ func (rcv PersonList) TakeWhile(fn func(Person) bool) PersonList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv PersonList) FilterNot(fn func(Person) bool) PersonList {
-	ys := make([]Person, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func(x Person) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -266,6 +259,22 @@ func (rcv PersonList) Intersect(xs PersonList) PersonList {
 
 func (rcv PersonList) Slice(from int, to int) PersonList {
 	return rcv[from : to+1]
+}
+
+func (rcv PersonList) FlatMapToPersonList(fn func(Person) PersonList) PersonList {
+	xs := EmptyPersonList()
+	rcv.ForEach(func(x Person) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv PersonList) MapToPerson(fn func(Person) Person) PersonList {
+	xs := EmptyPersonList()
+	rcv.ForEach(func(x Person) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
 }
 
 func (rcv PersonList) MapToCat(fn func(Person) Cat) CatList {

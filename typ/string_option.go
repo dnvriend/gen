@@ -1,5 +1,5 @@
 // Generated code; DO NOT EDIT.
-package test
+package typ
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -15,6 +15,8 @@ type StringOption interface {
 	Count() int
 	Contains(a string) bool
 	ContainsNot(a string) bool
+	MapToString(fn func(string) string) StringOption
+	FlatMapToString(fn func(string) StringOption) StringOption
 }
 
 type StringSome struct {
@@ -24,11 +26,11 @@ type StringSome struct {
 type StringNone struct {
 }
 
-var noneString = StringNone{}
+var noneStringOption = StringNone{}
 
 func OptionOfString(a *string) StringOption {
 	if a == nil {
-		return noneString
+		return noneStringOption
 	} else {
 		return StringSome{*a}
 	}
@@ -70,6 +72,14 @@ func (rcv StringNone) ContainsNot(a string) bool {
 	return true
 }
 
+func (rcv StringNone) MapToString(fn func(string) string) StringOption {
+	return noneStringOption
+}
+
+func (rcv StringNone) FlatMapToString(fn func(string) StringOption) StringOption {
+	return noneStringOption
+}
+
 // some
 func (rcv StringSome) Get() string {
 	return rcv.a
@@ -106,4 +116,13 @@ func (rcv StringSome) Contains(a string) bool {
 
 func (rcv StringSome) ContainsNot(a string) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv StringSome) MapToString(fn func(string) string) StringOption {
+	x := fn(rcv.a)
+	return OptionOfString(&x)
+}
+
+func (rcv StringSome) FlatMapToString(fn func(string) StringOption) StringOption {
+	return fn(rcv.a)
 }

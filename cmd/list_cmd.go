@@ -17,10 +17,11 @@ var listCmd = &cobra.Command{
 		packageName := cmd.GetStringParam("package")
 		typeName := cmd.GetStringParam("type")
 		mapTo := cmd.GetStringArrayParam("mapto")
+		flatMapTo := cmd.GetStringArrayParam("flatmapto")
 		foldMapTo := cmd.GetStringArrayParam("foldmapto")
 		imports := cmd.GetStringArrayParam("import")
 
-		generated := list.Generate(packageName, typeName, mapTo, foldMapTo, imports)
+		generated := list.Generate(packageName, typeName, mapTo, flatMapTo, foldMapTo, imports)
 		switch {
 		case cmd.GetBoolParam("stdout"):
 			fmt.Println(generated)
@@ -41,7 +42,8 @@ func init() {
 	listCmd.Flags().StringP("package", "p", "", "the package name")
 	listCmd.Flags().StringP("type", "t", "", "the type name")
 	listCmd.Flags().StringArrayP("mapto", "m", []string{}, "generate MapTo[T] methods")
-	listCmd.Flags().StringArrayP("foldmapto", "f", []string{}, "generate FoldMapTo[T] methods")
+	listCmd.Flags().StringArrayP("flatmapto", "f", []string{}, "generate FlatMapTo[T] methods")
+	listCmd.Flags().StringArrayP("foldmapto", "l", []string{}, "generate FoldMapTo[T] methods")
 	listCmd.Flags().StringArrayP("import", "i", []string{}, "add extra import")
 	listCmd.Flags().BoolP("stdout", "s", false, "print to stdout")
 }

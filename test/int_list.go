@@ -47,18 +47,18 @@ func (rcv IntList) Reverse() IntList {
 
 // panics when the list is empty
 func (rcv IntList) Head() int {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv IntList) HeadOption() IntOption {
 	if len(rcv) == 0 {
-		return noneInt
-	} 
+		return OptionOfInt(nil)
+	}
 	return OptionOfInt(&rcv[0])
 }
 
 func (rcv IntList) Last() int {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -69,16 +69,16 @@ func (rcv IntList) Init() IntList {
 // The rest of the collection without its first element.
 func (rcv IntList) Tail() IntList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv IntList) Filter(fn func(int) bool) IntList {
-	ys := make([]int, 0)
-	for _, v := range rcv {
+	ys := EmptyIntList()
+	rcv.ForEach(func(v int) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -89,13 +89,7 @@ func (rcv IntList) TakeWhile(fn func(int) bool) IntList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv IntList) FilterNot(fn func(int) bool) IntList {
-	ys := make([]int, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func(x int) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -265,6 +259,62 @@ func (rcv IntList) Intersect(xs IntList) IntList {
 
 func (rcv IntList) Slice(from int, to int) IntList {
 	return rcv[from : to+1]
+}
+
+func (rcv IntList) FlatMapToIntList(fn func(int) IntList) IntList {
+	xs := EmptyIntList()
+	rcv.ForEach(func(x int) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv IntList) MapToInt(fn func(int) int) IntList {
+	xs := EmptyIntList()
+	rcv.ForEach(func(x int) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+func (rcv IntList) MapToString(fn func(int) string) StringList {
+	ys := make([]string, 0)
+	for _, x := range rcv {
+		ys = append(ys, fn(x))
+	}
+	return ys
+}
+
+func (rcv IntList) MapToStringWithIndex(fn func(int, int) string) StringList {
+	ys := make([]string, 0)
+	for i, x := range rcv {
+		ys = append(ys, fn(i, x))
+	}
+	return ys
+}
+
+func (rcv IntList) MapToStringWithLastFlag(fn func(bool, int) string) StringList {
+	ys := make([]string, 0)
+	for i, x := range rcv {
+		ys = append(ys, fn(i+1 == len(rcv), x))
+	}
+	return ys
+}
+
+func (rcv IntList) FlatMapToStringList(fn func(int) StringList) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x int) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv IntList) FlatMapToCatList(fn func(int) CatList) CatList {
+	xs := EmptyCatList()
+	rcv.ForEach(func(x int) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
 }
 
 func (rcv IntList) Range(from int, to int) IntList {

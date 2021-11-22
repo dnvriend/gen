@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type StringList []string
@@ -48,18 +47,18 @@ func (rcv StringList) Reverse() StringList {
 
 // panics when the list is empty
 func (rcv StringList) Head() string {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv StringList) HeadOption() StringOption {
 	if len(rcv) == 0 {
-		return noneString
-	} 
+		return OptionOfString(nil)
+	}
 	return OptionOfString(&rcv[0])
 }
 
 func (rcv StringList) Last() string {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,16 +69,16 @@ func (rcv StringList) Init() StringList {
 // The rest of the collection without its first element.
 func (rcv StringList) Tail() StringList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv StringList) Filter(fn func(string) bool) StringList {
-	ys := make([]string, 0)
-	for _, v := range rcv {
+	ys := EmptyStringList()
+	rcv.ForEach(func(v string) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -90,13 +89,7 @@ func (rcv StringList) TakeWhile(fn func(string) bool) StringList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv StringList) FilterNot(fn func(string) bool) StringList {
-	ys := make([]string, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func(x string) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -266,4 +259,57 @@ func (rcv StringList) Intersect(xs StringList) StringList {
 
 func (rcv StringList) Slice(from int, to int) StringList {
 	return rcv[from : to+1]
+}
+
+func (rcv StringList) FlatMapToStringList(fn func(string) StringList) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x string) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv StringList) MapToString(fn func(string) string) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x string) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+func (rcv StringList) MapToInt(fn func(string) int) IntList {
+	ys := make([]int, 0)
+	for _, x := range rcv {
+		ys = append(ys, fn(x))
+	}
+	return ys
+}
+
+func (rcv StringList) MapToIntWithIndex(fn func(int, string) int) IntList {
+	ys := make([]int, 0)
+	for i, x := range rcv {
+		ys = append(ys, fn(i, x))
+	}
+	return ys
+}
+
+func (rcv StringList) MapToIntWithLastFlag(fn func(bool, string) int) IntList {
+	ys := make([]int, 0)
+	for i, x := range rcv {
+		ys = append(ys, fn(i+1 == len(rcv), x))
+	}
+	return ys
+}
+
+func (rcv StringList) FlatMapToCatList(fn func(string) CatList) CatList {
+	xs := EmptyCatList()
+	rcv.ForEach(func(x string) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+// joins using the character and returns the string
+func (rcv StringList) Join(sep string) string {
+	return rcv.Intersperse(sep).MkString()
 }

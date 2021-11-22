@@ -1,5 +1,5 @@
-//go:generate gen list -p test -t int
-//go:generate gen list -p test -t string
+//go:generate gen list -p test -t int -f string -f cat -m string
+//go:generate gen list -p test -t string -m int -f cat
 package test
 
 import (
@@ -106,10 +106,58 @@ func TestHeadOption(t *testing.T) {
 	assert.Equal(t, noneInt, ys.HeadOption())
 }
 
-// func TestZip(t *testing.T) {
-// 	xs := EmptyStringList().AppendAll("a", "b")
-// 	ys := EmptyStringList().AppendAll("c", "d")
-// 	zs := xs.Zip(ys).ToSlice()
-// 	assert.Equal(t, []string{""}, xs)
+func TestFlatMap(t *testing.T) {
+	xs := EmptyIntList().
+		AppendAll(1, 2, 3).
+		FlatMapToIntList(func(x int) IntList {
+			return EmptyIntList().AppendAll(1, 2, 3)
+		})
+	assert.Equal(t, []int{1, 2, 3, 1, 2, 3, 1, 2, 3}, xs.ToSlice())
 
-// }
+	ys := EmptyIntList().
+		AppendAll(1, 2, 3).
+		FlatMapToStringList(func(x int) StringList {
+			return EmptyStringList().AppendAll("a", "b", "c")
+		})
+	assert.Equal(t, []string{"a", "b", "c", "a", "b", "c", "a", "b", "c"}, ys.ToSlice())
+}
+
+func TestFlatMapToPerson(t *testing.T) {
+	xs := EmptyStringList().
+		AppendAll("foo", "bar").
+		FlatMapToCatList(func(s string) CatList {
+			return EmptyCatList().
+				Append(Cat{Name: s}).
+				Append(Cat{Name: s})
+		})
+	assert.Equal(t, []Cat{{Name: "foo"}, {Name: "foo"}, {Name: "bar"}, {Name: "bar"}}, xs.ToSlice())
+}
+
+var result IntList
+
+func BenchmarkMapStringList(b *testing.B) {
+	var xs IntList
+	for n := 0; n < b.N; n++ {
+		xs = EmptyStringList().
+			AppendAll("a", "bb", "ccc", "dddd", "eeeee", "ffffff", "ggggggg", "hhhhhhhh").
+			MapToInt(func(s string) int {
+				return len(s)
+			})
+	}
+	result = xs
+}
+
+var result2 []int
+
+func BenchmarkRangeString(b *testing.B) {
+	var ys []int
+	for n := 0; n < b.N; n++ {
+		xs := []string{"a", "bb", "ccc", "dddd", "eeeee", "ffffff", "ggggggg", "hhhhhhhh"}
+		ys = make([]int, 0)
+		for _, x := range xs {
+			ys = append(ys, len(x))
+		}
+
+	}
+	result2 = ys
+}

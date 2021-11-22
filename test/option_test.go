@@ -15,17 +15,17 @@ func TestGet(t *testing.T) {
 	a := 1
 	x := OptionOfInt(&a)
 	assert.Equal(t, 1, x.Get())
-	assert.Equal(t, 1, x.GetOrElse(func () int { return 2}))
+	assert.Equal(t, 1, x.GetOrElse(func() int { return 2 }))
 
 	y := OptionOfString(nil)
 	assert.Equal(t, noneString, y)
-	assert.Equal(t, noneString.GetOrElse(func () string { return "bla"}), "bla")
+	assert.Equal(t, noneString.GetOrElse(func() string { return "bla" }), "bla")
 
 	str := "foo"
 	z := OptionOfString(&str)
 	assert.Equal(t, StringSome{"foo"}, z)
 	assert.Equal(t, z.Get(), "foo")
-	assert.Equal(t, z.GetOrElse(func() string { return "bla"}), "foo")
+	assert.Equal(t, z.GetOrElse(func() string { return "bla" }), "foo")
 
 	p := Person{
 		Name:      "mr black",
@@ -36,7 +36,7 @@ func TestGet(t *testing.T) {
 	po := OptionOfPerson(&p)
 	assert.Equal(t, PersonSome{p}, po)
 	assert.Equal(t, po.Get(), p)
-	assert.Equal(t, po.GetOrElse(func () Person { return Person{}}), p)
+	assert.Equal(t, po.GetOrElse(func() Person { return Person{} }), p)
 }
 
 func TestSome(t *testing.T) {

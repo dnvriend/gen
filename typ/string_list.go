@@ -1,11 +1,10 @@
 // Generated code; DO NOT EDIT.
-package collections
+package typ
 
 import (
-	"errors"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"strings"
-	
 )
 
 type StringList []string
@@ -46,12 +45,20 @@ func (rcv StringList) Reverse() StringList {
 	return rcv
 }
 
+// panics when the list is empty
 func (rcv StringList) Head() string {
-	return rcv[0] 
+	return rcv[0]
+}
+
+func (rcv StringList) HeadOption() StringOption {
+	if len(rcv) == 0 {
+		return noneStringOption
+	}
+	return OptionOfString(&rcv[0])
 }
 
 func (rcv StringList) Last() string {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -62,16 +69,16 @@ func (rcv StringList) Init() StringList {
 // The rest of the collection without its first element.
 func (rcv StringList) Tail() StringList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv StringList) Filter(fn func(string) bool) StringList {
-	ys := make([]string, 0)
-	for _, v := range rcv {
+	ys := EmptyStringList()
+	rcv.ForEach(func(v string) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -82,13 +89,7 @@ func (rcv StringList) TakeWhile(fn func(string) bool) StringList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv StringList) FilterNot(fn func(string) bool) StringList {
-	ys := make([]string, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func(x string) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -113,17 +114,6 @@ func (rcv StringList) ForEachWithLastFlag(fn func(bool, string)) {
 		fn(i+1 == len(rcv), x)
 	}
 }
-
-// Finds the first element of the list satisfying a predicate, if any.
-func (rcv StringList) Find(fn func(string) bool) (*string, error) {
-	for _, x := range rcv {
-		if fn(x) {
-			return &x, nil
-		}
-	}
-	return nil, errors.New("Could not find element")
-}
-
 
 func (rcv StringList) Count() int {
 	return len(rcv)
@@ -205,7 +195,13 @@ func (rcv StringList) Tablulate(num int, fn func(int) string) StringList {
 func (rcv StringList) Partition(fn func(string) bool) (StringList, StringList) {
 	xs := EmptyStringList()
 	ys := EmptyStringList()
-	
+	rcv.ForEach(func(x string) {
+		if fn(x) {
+			xs = xs.Append(x)
+		} else {
+			ys = ys.Append(x)
+		}
+	})
 	return xs, ys
 }
 
@@ -227,7 +223,7 @@ func (rcv StringList) RangeOf(from int, to int, fn func(int) string) StringList 
 
 func (rcv StringList) Contains(a string) bool {
 	for _, x := range rcv {
-		if x == a {
+		if cmp.Equal(x, a) {
 			return true
 		}
 	}
@@ -253,7 +249,7 @@ func (rcv StringList) Intersect(xs StringList) StringList {
 	ys := EmptyStringList()
 	rcv.ForEach(func(x string) {
 		xs.ForEach(func(y string) {
-			if x == y && ys.ContainsNot(x) {
+			if cmp.Equal(x, y) && ys.ContainsNot(x) {
 				ys = ys.Append(x)
 			}
 		})
@@ -263,4 +259,20 @@ func (rcv StringList) Intersect(xs StringList) StringList {
 
 func (rcv StringList) Slice(from int, to int) StringList {
 	return rcv[from : to+1]
+}
+
+func (rcv StringList) FlatMapToStringList(fn func(string) StringList) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x string) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv StringList) MapToStringList(fn func(string) string) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x string) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
 }

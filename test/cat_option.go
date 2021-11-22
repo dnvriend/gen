@@ -3,7 +3,6 @@ package test
 
 import (
 	"github.com/google/go-cmp/cmp"
-	
 )
 
 type CatOption interface {
@@ -44,7 +43,7 @@ func (rcv CatNone) GetOrElse(fn func() Cat) Cat {
 	return fn()
 }
 
-func (rcv CatNone) ForEach(fn func(Cat)) {	
+func (rcv CatNone) ForEach(fn func(Cat)) {
 }
 
 func (rcv CatNone) IsEmpty() bool {
@@ -92,7 +91,7 @@ func (rcv CatSome) IsNotEmpty() bool {
 	return true
 }
 
-// alias 
+// alias
 func (rcv CatSome) IsDefined() bool {
 	return true
 }

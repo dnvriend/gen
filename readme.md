@@ -16,7 +16,17 @@ In the package where it is executed, it will write a `<type_name>_list.go` file 
 Either of the CLI or as part of `go:generate`
 
 ```
+// generate a list 
 gen list -p <package_name> -t <type_name> -m <map_to> -f <fold_to>
+
+// generate an option type
+gen option -p <package_name> -t <type_name> -m <map_to> -f <fold_to>
+
+// generate a range type
+gen range -p <package_name>
+
+// generate a string type
+gen string -p <package_name>
 ```
 
 and/or in your code

@@ -3,30 +3,46 @@ package list
 import (
 	"bytes"
 	"fmt"
-	"strings"
-
-	"github.com/dnvriend/gen/collections"
+	"github.com/dnvriend/gen/typ"
+	"github.com/dnvriend/gen/util"
 )
 
-func Generate(packageName string, typeName string, mapTo []string, foldMapTo []string, imports []string) string {
-	var builder strings.Builder
-	builder.WriteString(fmt.Sprintf("// Generated code; DO NOT EDIT.\npackage %v\n", packageName))
-	builder.WriteString(buildImports(imports))
-	builder.WriteString(buildBase(packageName, typeName))
-	for _, toType := range mapTo {
-		builder.WriteString(buildMapTo(typeName, toType))
-	}
-	for _, toType := range foldMapTo {
-		builder.WriteString(buildFoldMapTo(typeName, toType))
-	}
+func Generate(
+	packageName string,
+	typeName string,
+	mapTo typ.StringList,
+	flatMapTo typ.StringList,
+	foldMapTo typ.StringList,
+	imports typ.StringList) string {
+
+	ws := mapTo.MapToStringList(func(toType string) string {
+		return buildMapTo(typeName, toType)
+	})
+
+	xs := flatMapTo.MapToStringList(func(toType string) string {
+		return buildFlatMapTo(typeName, toType)
+	})
+
+	ys := foldMapTo.MapToStringList(func(toType string) string {
+		return buildFoldMapTo(typeName, toType)
+	})
+
+	zs := typ.EmptyStringList().
+		Append(fmt.Sprintf("// Generated code; DO NOT EDIT.\npackage %v\n", packageName)).
+		Append(buildImports(imports)).
+		Append(buildBase(packageName, typeName)).
+		AppendSlice(ws.ToSlice()).
+		AppendSlice(xs.ToSlice()).
+		AppendSlice(ys.ToSlice())
+
 	switch typeName {
 	case "int":
-		builder.WriteString(buildIntListExtras())
+		zs = zs.Append(buildIntListExtras())
 	case "string":
-		builder.WriteString(buildStringListExtras())
+		zs = zs.Append(buildStringListExtras())
 	}
 
-	return builder.String()
+	return zs.MkString()
 }
 
 func buildImports(imports []string) string {
@@ -34,7 +50,7 @@ func buildImports(imports []string) string {
 	model := struct {
 		Imports []string
 	}{
-		Imports: collections.
+		Imports: typ.
 			EmptyStringList().
 			AppendAll(imports...).
 			Append("fmt").
@@ -44,42 +60,64 @@ func buildImports(imports []string) string {
 	}
 	var buf bytes.Buffer
 	if err := importsTemplate.Execute(&buf, model); err != nil {
-		fmt.Println("generating imports: %v", err)
+		fmt.Printf("generating imports: %v\n", err)
+	}
+	return buf.String()
+}
+
+func buildBase(packageName string, typeName string) string {
+	model := struct {
+		Type        string // the original type
+		TypeName    string // [T] of the container type, based on the type
+		PackageName string // the name of the package
+	}{
+		Type:        typeName,
+		TypeName:    util.TypeName(typeName),
+		PackageName: packageName,
+	}
+	var buf bytes.Buffer
+	if err := baseTmpl.Execute(&buf, model); err != nil {
+		fmt.Printf("generating base code: %v\n", err)
 	}
 	return buf.String()
 }
 
 func buildMapTo(typeName string, toType string) string {
 	model := struct {
-		Type            string
-		TypeName        string
-		ToType          string
-		ToTypeName      string
-		ToShortTypeName string
+		Type       string
+		TypeName   string
+		ToType     string
+		ToTypeName string
 	}{
-		ToType:          toType,
-		ToTypeName:      toType,
-		ToShortTypeName: toShortTypeName(toType),
-		TypeName:        fixTypeName(typeName),
-		Type:            typeName,
+		Type:       typeName,
+		TypeName:   util.TypeName(typeName),
+		ToType:     toType,
+		ToTypeName: util.TypeName(toType),
 	}
 	var buf bytes.Buffer
 	if err := mapToTemplate.Execute(&buf, model); err != nil {
-		fmt.Println("generating map code: %v", err)
+		fmt.Printf("generating map code: %v\n", err)
 	}
 	return buf.String()
 }
 
-func fixTypeName(name string) string {
-	str := strings.ReplaceAll(name, "*", "")
-	str = strings.ReplaceAll(str, ".", "")
-	return strings.Title(str)
-}
-
-func toShortTypeName(name string) string {
-	return collections.EmptyStringList().
-		AppendSlice(strings.Split(name, ".")).
-		Last()
+func buildFlatMapTo(typeName string, toType string) string {
+	model := struct {
+		Type       string
+		TypeName   string
+		ToType     string
+		ToTypeName string
+	}{
+		Type:       typeName,
+		TypeName:   util.TypeName(typeName),
+		ToType:     toType,
+		ToTypeName: util.TypeName(toType),
+	}
+	var buf bytes.Buffer
+	if err := flatMapToTemplate.Execute(&buf, model); err != nil {
+		fmt.Printf("generating flatmap code: %v\n", err)
+	}
+	return buf.String()
 }
 
 func buildFoldMapTo(typeName string, toType string) string {
@@ -89,31 +127,14 @@ func buildFoldMapTo(typeName string, toType string) string {
 		ToType     string
 		ToTypeName string
 	}{
-		ToType:     toType,
-		ToTypeName: fixTypeName(toType),
-		TypeName:   fixTypeName(typeName),
 		Type:       typeName,
+		TypeName:   util.TypeName(typeName),
+		ToType:     toType,
+		ToTypeName: util.TypeName(toType),
 	}
 	var buf bytes.Buffer
 	if err := foldMapToTemplate.Execute(&buf, model); err != nil {
-		fmt.Println("generating foldmap code: %v", err)
-	}
-	return buf.String()
-}
-
-func buildBase(packageName string, typeName string) string {
-	model := struct {
-		PackageName string
-		TypeName    string
-		Type        string
-	}{
-		PackageName: packageName,
-		TypeName:    fixTypeName(typeName),
-		Type:        typeName,
-	}
-	var buf bytes.Buffer
-	if err := baseTmpl.Execute(&buf, model); err != nil {
-		fmt.Println("generating base code: %v", err)
+		fmt.Printf("generating foldmap code: %v\n", err)
 	}
 	return buf.String()
 }
@@ -121,7 +142,7 @@ func buildBase(packageName string, typeName string) string {
 func buildIntListExtras() string {
 	var buf bytes.Buffer
 	if err := intListTemplate.Execute(&buf, nil); err != nil {
-		fmt.Println("generating int list extras code: %v", err)
+		fmt.Printf("generating int list extras code: %v\n", err)
 	}
 	return buf.String()
 }
@@ -129,7 +150,7 @@ func buildIntListExtras() string {
 func buildStringListExtras() string {
 	var buf bytes.Buffer
 	if err := stringListTemplate.Execute(&buf, nil); err != nil {
-		fmt.Println("generating string list extras code: %v", err)
+		fmt.Printf("generating string list extras code: %v\n", err)
 	}
 	return buf.String()
 }

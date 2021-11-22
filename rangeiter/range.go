@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dnvriend/gen/collections"
+	"github.com/dnvriend/gen/typ"
 )
 
 func Generate(packageName string) string {
@@ -17,11 +17,10 @@ func Generate(packageName string) string {
 }
 
 func buildImports() string {
-
 	model := struct {
 		Imports []string
 	}{
-		Imports: collections.
+		Imports: typ.
 			EmptyStringList().
 			Append("net/url").
 			Append("strings").
@@ -30,7 +29,7 @@ func buildImports() string {
 	}
 	var buf bytes.Buffer
 	if err := importsTemplate.Execute(&buf, model); err != nil {
-		fmt.Println("generating imports: %v", err)
+		fmt.Printf("generating imports: %v\n", err)
 	}
 	return buf.String()
 }
@@ -43,7 +42,7 @@ func buildBase(packageName string) string {
 	}
 	var buf bytes.Buffer
 	if err := baseTmpl.Execute(&buf, model); err != nil {
-		fmt.Println("generating base code: %v", err)
+		fmt.Printf("generating base code: %v\n", err)
 	}
 	return buf.String()
 }

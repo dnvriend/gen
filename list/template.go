@@ -48,7 +48,7 @@ func (rcv {{.TypeName}}List) Head() {{.Type}} {
 
 func (rcv {{.TypeName}}List) HeadOption() {{.TypeName}}Option {
 	if len(rcv) == 0 {
-		return none{{.TypeName}}
+		return OptionOf{{.TypeName}}(nil)
 	} 
 	return OptionOf{{.TypeName}}(&rcv[0])
 }
@@ -69,12 +69,12 @@ func (rcv {{.TypeName}}List) Tail() {{.TypeName}}List {
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv {{.TypeName}}List) Filter(fn func({{.Type}}) bool) {{.TypeName}}List {
-	ys := make([]{{.Type}}, 0)
-	for _, v := range rcv {
+	ys := Empty{{.TypeName}}List()
+ 	rcv.ForEach(func(v {{.Type}}) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -85,13 +85,7 @@ func (rcv {{.TypeName}}List) TakeWhile(fn func({{.Type}}) bool) {{.TypeName}}Lis
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv {{.TypeName}}List) FilterNot(fn func({{.Type}}) bool) {{.TypeName}}List {
-	ys := make([]{{.Type}}, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func (x {{.Type}}) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -262,10 +256,26 @@ func (rcv {{.TypeName}}List) Intersect(xs {{.TypeName}}List) {{.TypeName}}List {
 func (rcv {{.TypeName}}List) Slice(from int, to int) {{.TypeName}}List {
 	return rcv[from : to+1]
 }
+
+func (rcv {{.TypeName}}List) FlatMapTo{{.TypeName}}List(fn func({{.Type}}) {{.TypeName}}List) {{.TypeName}}List {
+	xs := Empty{{.TypeName}}List()
+	rcv.ForEach(func(x {{.Type}}) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv {{.TypeName}}List) MapTo{{.TypeName}}(fn func({{.Type}}) {{.Type}}) {{.TypeName}}List {
+	xs := Empty{{.TypeName}}List()
+	rcv.ForEach(func(x {{.Type}}) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
+}
 `))
 
 var mapToTemplate = template.Must(template.New("generated").Parse(`
-func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}(fn func({{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}(fn func({{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
 	ys := make([]{{.ToType}}, 0)
 	for _, x := range rcv {
 		ys = append(ys, fn(x))
@@ -273,7 +283,7 @@ func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}(fn func({{.Type}}) {{.ToT
 	return ys
 }
 
-func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}WithIndex(fn func(int, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}WithIndex(fn func(int, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
 	ys := make([]{{.ToType}}, 0)
 	for i, x := range rcv {
 		ys = append(ys, fn(i, x))
@@ -281,7 +291,7 @@ func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}WithIndex(fn func(int, {{.
 	return ys
 }
 
-func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}WithLastFlag(fn func(bool, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}WithLastFlag(fn func(bool, {{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
 	ys := make([]{{.ToType}}, 0)
 	for i, x := range rcv {
 		ys = append(ys, fn(i+1 == len(rcv), x))
@@ -291,11 +301,13 @@ func (rcv {{.TypeName}}List) MapTo{{.ToShortTypeName}}WithLastFlag(fn func(bool,
 `))
 
 var foldMapToTemplate = template.Must(template.New("generated").Parse(`
-func (rcv {{.TypeName}}List) FoldMapTo{{.ToTypeName}}(zero {{.Type}}, foldFn func(acc {{.Type}}, x {{.Type}}) {{.Type}}, mapFn func(x {{.Type}}) {{.ToType}}) {{.ToType}} {
+func (rcv {{.TypeName}}List) FoldMapTo{{.ToTypeName}}(zero {{.ToType}}, foldFn func(acc {{.ToType}}, x {{.ToType}}) {{.ToType}}, mapFn func(x {{.Type}}) {{.ToType}}) {{.ToType}} {
+	acc := zero
 	for _, x := range rcv {
-		zero = foldFn(zero, x)
+		y := mapFn(x)
+		acc = foldFn(acc, y)
 	}
-	return mapFn(zero)
+	return acc
 }
 `))
 
@@ -317,8 +329,18 @@ func (rcv IntList) Range(from int, to int) IntList {
 `))
 
 var stringListTemplate = template.Must(template.New("generated").Parse(`
-func (rcv StringList) Join(sep string) String {
-	str := strings.Join(rcv.ToSlice(), sep)
-	return String(str)
+// joins using the character and returns the string
+func (rcv StringList) Join(sep string) string {
+	return rcv.Intersperse(sep).MkString()
+}
+`))
+
+var flatMapToTemplate = template.Must(template.New("generated").Parse(`
+func (rcv {{.TypeName}}List) FlatMapTo{{.ToTypeName}}List(fn func({{.Type}}) {{.ToTypeName}}List) {{.ToTypeName}}List {
+	xs := Empty{{.ToTypeName}}List()
+	rcv.ForEach(func(x {{.Type}}) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
 }
 `))

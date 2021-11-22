@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type CatList []Cat
@@ -48,18 +47,18 @@ func (rcv CatList) Reverse() CatList {
 
 // panics when the list is empty
 func (rcv CatList) Head() Cat {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv CatList) HeadOption() CatOption {
 	if len(rcv) == 0 {
-		return noneCat
-	} 
+		return OptionOfCat(nil)
+	}
 	return OptionOfCat(&rcv[0])
 }
 
 func (rcv CatList) Last() Cat {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,16 +69,16 @@ func (rcv CatList) Init() CatList {
 // The rest of the collection without its first element.
 func (rcv CatList) Tail() CatList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv CatList) Filter(fn func(Cat) bool) CatList {
-	ys := make([]Cat, 0)
-	for _, v := range rcv {
+	ys := EmptyCatList()
+	rcv.ForEach(func(v Cat) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -90,13 +89,7 @@ func (rcv CatList) TakeWhile(fn func(Cat) bool) CatList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv CatList) FilterNot(fn func(Cat) bool) CatList {
-	ys := make([]Cat, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func(x Cat) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -266,4 +259,20 @@ func (rcv CatList) Intersect(xs CatList) CatList {
 
 func (rcv CatList) Slice(from int, to int) CatList {
 	return rcv[from : to+1]
+}
+
+func (rcv CatList) FlatMapToCatList(fn func(Cat) CatList) CatList {
+	xs := EmptyCatList()
+	rcv.ForEach(func(x Cat) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv CatList) MapToCat(fn func(Cat) Cat) CatList {
+	xs := EmptyCatList()
+	rcv.ForEach(func(x Cat) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
 }

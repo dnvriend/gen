@@ -1,5 +1,5 @@
 // Generated code; DO NOT EDIT.
-package test
+package typ
 
 import (
 	"net/url"
@@ -25,6 +25,10 @@ func (s String) ToUpper() String {
 
 func (s String) ToTitle() String {
 	return String(strings.ToTitle(s.Str()))
+}
+
+func (s String) Title() String {
+	return String(strings.Title(s.Str()))
 }
 
 func (s String) Contains(that string) bool {
