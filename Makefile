@@ -1,4 +1,4 @@
-.PHONY: help
+.PHONY: helpgo
 .DEFAULT_GOAL := help
 
 help:

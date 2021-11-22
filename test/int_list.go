@@ -3,8 +3,9 @@ package test
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strings"
+	"github.com/google/go-cmp/cmp"
+	
 )
 
 type IntList []int
@@ -47,18 +48,18 @@ func (rcv IntList) Reverse() IntList {
 
 // panics when the list is empty
 func (rcv IntList) Head() int {
-	return rcv[0]
+	return rcv[0] 
 }
 
 func (rcv IntList) HeadOption() IntOption {
 	if len(rcv) == 0 {
 		return OptionOfInt(nil)
-	}
+	} 
 	return OptionOfInt(&rcv[0])
 }
 
 func (rcv IntList) Last() int {
-	return rcv[len(rcv)-1]
+	return rcv[len(rcv)-1] 
 }
 
 // returns the initial part of the collection, without the last element
@@ -69,12 +70,12 @@ func (rcv IntList) Init() IntList {
 // The rest of the collection without its first element.
 func (rcv IntList) Tail() IntList {
 	return rcv[1:]
-}
+} 
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv IntList) Filter(fn func(int) bool) IntList {
 	ys := EmptyIntList()
-	rcv.ForEach(func(v int) {
+ 	rcv.ForEach(func(v int) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -89,7 +90,7 @@ func (rcv IntList) TakeWhile(fn func(int) bool) IntList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv IntList) FilterNot(fn func(int) bool) IntList {
-	return rcv.Filter(func(x int) bool { return !fn(x) })
+	return rcv.Filter(func (x int) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -205,12 +206,12 @@ func (rcv IntList) Partition(fn func(int) bool) (IntList, IntList) {
 	return xs, ys
 }
 
-func (rcv IntList) MkString() string {
+func (rcv IntList) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x int) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv IntList) RangeOf(from int, to int, fn func(int) int) IntList {

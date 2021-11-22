@@ -3,8 +3,9 @@ package test
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strings"
+	"github.com/google/go-cmp/cmp"
+	
 )
 
 type StringList []string
@@ -47,18 +48,18 @@ func (rcv StringList) Reverse() StringList {
 
 // panics when the list is empty
 func (rcv StringList) Head() string {
-	return rcv[0]
+	return rcv[0] 
 }
 
 func (rcv StringList) HeadOption() StringOption {
 	if len(rcv) == 0 {
 		return OptionOfString(nil)
-	}
+	} 
 	return OptionOfString(&rcv[0])
 }
 
 func (rcv StringList) Last() string {
-	return rcv[len(rcv)-1]
+	return rcv[len(rcv)-1] 
 }
 
 // returns the initial part of the collection, without the last element
@@ -69,12 +70,12 @@ func (rcv StringList) Init() StringList {
 // The rest of the collection without its first element.
 func (rcv StringList) Tail() StringList {
 	return rcv[1:]
-}
+} 
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv StringList) Filter(fn func(string) bool) StringList {
 	ys := EmptyStringList()
-	rcv.ForEach(func(v string) {
+ 	rcv.ForEach(func(v string) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -89,7 +90,7 @@ func (rcv StringList) TakeWhile(fn func(string) bool) StringList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv StringList) FilterNot(fn func(string) bool) StringList {
-	return rcv.Filter(func(x string) bool { return !fn(x) })
+	return rcv.Filter(func (x string) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -205,12 +206,12 @@ func (rcv StringList) Partition(fn func(string) bool) (StringList, StringList) {
 	return xs, ys
 }
 
-func (rcv StringList) MkString() string {
+func (rcv StringList) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x string) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv StringList) RangeOf(from int, to int, fn func(int) string) StringList {
@@ -310,6 +311,6 @@ func (rcv StringList) FlatMapToCatList(fn func(string) CatList) CatList {
 }
 
 // joins using the character and returns the string
-func (rcv StringList) Join(sep string) string {
+func (rcv StringList) Join(sep string) String {
 	return rcv.Intersperse(sep).MkString()
 }

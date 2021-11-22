@@ -201,12 +201,12 @@ func (rcv {{.TypeName}}List) Partition(fn func({{.Type}}) bool) ({{.TypeName}}Li
 	return xs, ys
 }
 
-func (rcv {{.TypeName}}List) MkString() string {
+func (rcv {{.TypeName}}List) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x {{.Type}}) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv {{.TypeName}}List) RangeOf(from int, to int, fn func(int) {{.Type}}) {{.TypeName}}List {
@@ -330,7 +330,7 @@ func (rcv IntList) Range(from int, to int) IntList {
 
 var stringListTemplate = template.Must(template.New("generated").Parse(`
 // joins using the character and returns the string
-func (rcv StringList) Join(sep string) string {
+func (rcv StringList) Join(sep string) String {
 	return rcv.Intersperse(sep).MkString()
 }
 `))

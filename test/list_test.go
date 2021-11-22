@@ -133,6 +133,16 @@ func TestFlatMapToPerson(t *testing.T) {
 	assert.Equal(t, []Cat{{Name: "foo"}, {Name: "foo"}, {Name: "bar"}, {Name: "bar"}}, xs.ToSlice())
 }
 
+func TestJoin(t *testing.T) {
+	x := String("a/b/c").
+		Split("/").
+		Init().
+		Join("/").
+		Append("/").
+		Str()
+	assert.Equal(t, "a/b/", x)
+}
+
 var result IntList
 
 func BenchmarkMapStringList(b *testing.B) {

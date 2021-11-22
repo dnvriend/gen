@@ -3,6 +3,7 @@ package test
 
 import (
 	"github.com/google/go-cmp/cmp"
+	
 )
 
 type IntOption interface {
@@ -43,7 +44,7 @@ func (rcv IntNone) GetOrElse(fn func() int) int {
 	return fn()
 }
 
-func (rcv IntNone) ForEach(fn func(int)) {
+func (rcv IntNone) ForEach(fn func(int)) {	
 }
 
 func (rcv IntNone) IsEmpty() bool {
@@ -91,7 +92,7 @@ func (rcv IntSome) IsNotEmpty() bool {
 	return true
 }
 
-// alias
+// alias 
 func (rcv IntSome) IsDefined() bool {
 	return true
 }
