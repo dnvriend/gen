@@ -6,12 +6,12 @@ var baseTmpl = template.Must(template.New("generated").Parse(`
 type buildInfo struct {
 	ShortCommitHash string
 	LongCommitHash string
-	CurrentDateTime string
+	BuildDateTime string
 }
 
 var BuildInfo = buildInfo {
 	ShortCommitHash: "{{.ShortCommitHash}}",
 	LongCommitHash: "{{.LongCommitHash}}",
-	CurrentDateTime: "{{.CurrentDateTime}}",
+	BuildDateTime: "{{.CurrentDateTime}}",
 }
 `))
