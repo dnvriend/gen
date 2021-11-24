@@ -20,6 +20,7 @@ bench: test ## run benchmarks
 	cd test && go test -bench=. && cd ..
 
 build-and-copy: ## build an copy gen to /usr/local/bin
+	rm /usr/local/bin/gen
 	go build
 	mv gen /usr/local/bin
 

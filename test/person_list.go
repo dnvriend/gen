@@ -3,8 +3,9 @@ package test
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strings"
+	"github.com/google/go-cmp/cmp"
+	
 )
 
 type PersonList []Person
@@ -47,18 +48,18 @@ func (rcv PersonList) Reverse() PersonList {
 
 // panics when the list is empty
 func (rcv PersonList) Head() Person {
-	return rcv[0]
+	return rcv[0] 
 }
 
 func (rcv PersonList) HeadOption() PersonOption {
 	if len(rcv) == 0 {
 		return OptionOfPerson(nil)
-	}
+	} 
 	return OptionOfPerson(&rcv[0])
 }
 
 func (rcv PersonList) Last() Person {
-	return rcv[len(rcv)-1]
+	return rcv[len(rcv)-1] 
 }
 
 // returns the initial part of the collection, without the last element
@@ -69,12 +70,12 @@ func (rcv PersonList) Init() PersonList {
 // The rest of the collection without its first element.
 func (rcv PersonList) Tail() PersonList {
 	return rcv[1:]
-}
+} 
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv PersonList) Filter(fn func(Person) bool) PersonList {
 	ys := EmptyPersonList()
-	rcv.ForEach(func(v Person) {
+ 	rcv.ForEach(func(v Person) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -89,7 +90,7 @@ func (rcv PersonList) TakeWhile(fn func(Person) bool) PersonList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv PersonList) FilterNot(fn func(Person) bool) PersonList {
-	return rcv.Filter(func(x Person) bool { return !fn(x) })
+	return rcv.Filter(func (x Person) bool { return !fn(x)})
 }
 
 // alias for FilterNot
