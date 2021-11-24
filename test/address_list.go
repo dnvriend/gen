@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type AddressList []Address
@@ -48,18 +47,18 @@ func (rcv AddressList) Reverse() AddressList {
 
 // panics when the list is empty
 func (rcv AddressList) Head() Address {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv AddressList) HeadOption() AddressOption {
 	if len(rcv) == 0 {
 		return OptionOfAddress(nil)
-	} 
+	}
 	return OptionOfAddress(&rcv[0])
 }
 
 func (rcv AddressList) Last() Address {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,12 +69,12 @@ func (rcv AddressList) Init() AddressList {
 // The rest of the collection without its first element.
 func (rcv AddressList) Tail() AddressList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv AddressList) Filter(fn func(Address) bool) AddressList {
 	ys := EmptyAddressList()
- 	rcv.ForEach(func(v Address) {
+	rcv.ForEach(func(v Address) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -90,7 +89,7 @@ func (rcv AddressList) TakeWhile(fn func(Address) bool) AddressList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv AddressList) FilterNot(fn func(Address) bool) AddressList {
-	return rcv.Filter(func (x Address) bool { return !fn(x)})
+	return rcv.Filter(func(x Address) bool { return !fn(x) })
 }
 
 // alias for FilterNot

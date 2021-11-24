@@ -298,6 +298,42 @@ func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}WithLastFlag(fn func(bool, {{.T
 	}
 	return ys
 }
+
+func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}P(mapFn func({{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+	return rcv.MapTo{{.ToTypeName}}PP(10, mapFn)
+}
+
+func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}PP(parallelism int, mapFn func({{.Type}}) {{.ToType}}) {{.ToTypeName}}List {
+	return rcv.MapTo{{.ToTypeName}}PPP(parallelism, mapFn, func() {})
+}
+
+func (rcv {{.TypeName}}List) MapTo{{.ToTypeName}}PPP(parallelism int, mapFn func({{.Type}}) {{.ToType}}, progressFn func()) {{.ToTypeName}}List {
+	nrJobs := rcv.Count()
+	input := make(chan {{.Type}}, nrJobs)
+	output := make(chan {{.ToType}}, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x {{.Type}}) {
+		input <- x
+	})
+	close(input)
+
+	xs := Empty{{.ToTypeName}}List()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
+	})
+	return xs
+}
 `))
 
 var foldMapToTemplate = template.Must(template.New("generated").Parse(`

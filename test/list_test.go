@@ -1,3 +1,4 @@
+//go:generate gen range -p test
 //go:generate gen list -p test -t int -f string -f cat -m string
 //go:generate gen list -p test -t string -m int -f cat
 package test
@@ -71,7 +72,7 @@ func TestPartition(t *testing.T) {
 
 func TestMkString(t *testing.T) {
 	xs := EmptyIntList().Concat(1, 2, 3, 4)
-	str := xs.MkString()
+	str := xs.MkString().Str()
 	assert.Equal(t, "1234", str)
 }
 
