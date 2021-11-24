@@ -53,7 +53,7 @@ func (rcv AddressList) Head() Address {
 
 func (rcv AddressList) HeadOption() AddressOption {
 	if len(rcv) == 0 {
-		return noneAddress
+		return OptionOfAddress(nil)
 	} 
 	return OptionOfAddress(&rcv[0])
 }
@@ -74,12 +74,12 @@ func (rcv AddressList) Tail() AddressList {
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv AddressList) Filter(fn func(Address) bool) AddressList {
-	ys := make([]Address, 0)
-	for _, v := range rcv {
+	ys := EmptyAddressList()
+ 	rcv.ForEach(func(v Address) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -90,13 +90,7 @@ func (rcv AddressList) TakeWhile(fn func(Address) bool) AddressList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv AddressList) FilterNot(fn func(Address) bool) AddressList {
-	ys := make([]Address, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func (x Address) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -120,6 +114,41 @@ func (rcv AddressList) ForEachWithLastFlag(fn func(bool, Address)) {
 	for i, x := range rcv {
 		fn(i+1 == len(rcv), x)
 	}
+}
+
+func (rcv AddressList) ForEachP(fn func(Address)) {
+	rcv.ForEachPP(10, fn)
+}
+
+func (rcv AddressList) ForEachPP(parallelism int, fn func(Address)) {
+	rcv.ForEachPPP(parallelism, fn, func() {})
+}
+
+func (rcv AddressList) ForEachPPP(parallelism int, fn func(Address), progressFn func()) {
+	nrJobs := rcv.Count()
+	input := make(chan Address, nrJobs)
+	output := make(chan bool, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				fn(x)
+				output <- true
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x Address) {
+		input <- x
+	})
+	close(input)
+
+	Range(0, nrJobs).ForEach(func() {
+		<-output
+		progressFn()
+	})
 }
 
 func (rcv AddressList) Count() int {
@@ -212,12 +241,12 @@ func (rcv AddressList) Partition(fn func(Address) bool) (AddressList, AddressLis
 	return xs, ys
 }
 
-func (rcv AddressList) MkString() string {
+func (rcv AddressList) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x Address) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv AddressList) RangeOf(from int, to int, fn func(int) Address) AddressList {
@@ -266,4 +295,20 @@ func (rcv AddressList) Intersect(xs AddressList) AddressList {
 
 func (rcv AddressList) Slice(from int, to int) AddressList {
 	return rcv[from : to+1]
+}
+
+func (rcv AddressList) FlatMapToAddressList(fn func(Address) AddressList) AddressList {
+	xs := EmptyAddressList()
+	rcv.ForEach(func(x Address) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv AddressList) MapToAddress(fn func(Address) Address) AddressList {
+	xs := EmptyAddressList()
+	rcv.ForEach(func(x Address) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
 }

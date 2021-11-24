@@ -53,7 +53,7 @@ func (rcv IntList) Head() int {
 
 func (rcv IntList) HeadOption() IntOption {
 	if len(rcv) == 0 {
-		return noneInt
+		return OptionOfInt(nil)
 	} 
 	return OptionOfInt(&rcv[0])
 }
@@ -74,12 +74,12 @@ func (rcv IntList) Tail() IntList {
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv IntList) Filter(fn func(int) bool) IntList {
-	ys := make([]int, 0)
-	for _, v := range rcv {
+	ys := EmptyIntList()
+ 	rcv.ForEach(func(v int) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -90,13 +90,7 @@ func (rcv IntList) TakeWhile(fn func(int) bool) IntList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv IntList) FilterNot(fn func(int) bool) IntList {
-	ys := make([]int, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func (x int) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -120,6 +114,41 @@ func (rcv IntList) ForEachWithLastFlag(fn func(bool, int)) {
 	for i, x := range rcv {
 		fn(i+1 == len(rcv), x)
 	}
+}
+
+func (rcv IntList) ForEachP(fn func(int)) {
+	rcv.ForEachPP(10, fn)
+}
+
+func (rcv IntList) ForEachPP(parallelism int, fn func(int)) {
+	rcv.ForEachPPP(parallelism, fn, func() {})
+}
+
+func (rcv IntList) ForEachPPP(parallelism int, fn func(int), progressFn func()) {
+	nrJobs := rcv.Count()
+	input := make(chan int, nrJobs)
+	output := make(chan bool, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				fn(x)
+				output <- true
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x int) {
+		input <- x
+	})
+	close(input)
+
+	Range(0, nrJobs).ForEach(func() {
+		<-output
+		progressFn()
+	})
 }
 
 func (rcv IntList) Count() int {
@@ -212,12 +241,12 @@ func (rcv IntList) Partition(fn func(int) bool) (IntList, IntList) {
 	return xs, ys
 }
 
-func (rcv IntList) MkString() string {
+func (rcv IntList) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x int) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv IntList) RangeOf(from int, to int, fn func(int) int) IntList {
@@ -266,6 +295,22 @@ func (rcv IntList) Intersect(xs IntList) IntList {
 
 func (rcv IntList) Slice(from int, to int) IntList {
 	return rcv[from : to+1]
+}
+
+func (rcv IntList) FlatMapToIntList(fn func(int) IntList) IntList {
+	xs := EmptyIntList()
+	rcv.ForEach(func(x int) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv IntList) MapToInt(fn func(int) int) IntList {
+	xs := EmptyIntList()
+	rcv.ForEach(func(x int) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
 }
 
 func (rcv IntList) Range(from int, to int) IntList {

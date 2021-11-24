@@ -115,6 +115,41 @@ func (rcv IntList) ForEachWithLastFlag(fn func(bool, int)) {
 	}
 }
 
+func (rcv IntList) ForEachP(fn func(int)) {
+	rcv.ForEachPP(10, fn)
+}
+
+func (rcv IntList) ForEachPP(parallelism int, fn func(int)) {
+	rcv.ForEachPPP(parallelism, fn, func() {})
+}
+
+func (rcv IntList) ForEachPPP(parallelism int, fn func(int), progressFn func()) {
+	nrJobs := rcv.Count()
+	input := make(chan int, nrJobs)
+	output := make(chan bool, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				fn(x)
+				output <- true
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x int) {
+		input <- x
+	})
+	close(input)
+
+	Range(0, nrJobs).ForEach(func() {
+		<-output
+		progressFn()
+	})
+}
+
 func (rcv IntList) Count() int {
 	return len(rcv)
 }

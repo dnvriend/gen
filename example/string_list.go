@@ -53,7 +53,7 @@ func (rcv StringList) Head() string {
 
 func (rcv StringList) HeadOption() StringOption {
 	if len(rcv) == 0 {
-		return noneString
+		return OptionOfString(nil)
 	} 
 	return OptionOfString(&rcv[0])
 }
@@ -74,12 +74,12 @@ func (rcv StringList) Tail() StringList {
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv StringList) Filter(fn func(string) bool) StringList {
-	ys := make([]string, 0)
-	for _, v := range rcv {
+	ys := EmptyStringList()
+ 	rcv.ForEach(func(v string) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -90,13 +90,7 @@ func (rcv StringList) TakeWhile(fn func(string) bool) StringList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv StringList) FilterNot(fn func(string) bool) StringList {
-	ys := make([]string, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func (x string) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -120,6 +114,41 @@ func (rcv StringList) ForEachWithLastFlag(fn func(bool, string)) {
 	for i, x := range rcv {
 		fn(i+1 == len(rcv), x)
 	}
+}
+
+func (rcv StringList) ForEachP(fn func(string)) {
+	rcv.ForEachPP(10, fn)
+}
+
+func (rcv StringList) ForEachPP(parallelism int, fn func(string)) {
+	rcv.ForEachPPP(parallelism, fn, func() {})
+}
+
+func (rcv StringList) ForEachPPP(parallelism int, fn func(string), progressFn func()) {
+	nrJobs := rcv.Count()
+	input := make(chan string, nrJobs)
+	output := make(chan bool, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				fn(x)
+				output <- true
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x string) {
+		input <- x
+	})
+	close(input)
+
+	Range(0, nrJobs).ForEach(func() {
+		<-output
+		progressFn()
+	})
 }
 
 func (rcv StringList) Count() int {
@@ -212,12 +241,12 @@ func (rcv StringList) Partition(fn func(string) bool) (StringList, StringList) {
 	return xs, ys
 }
 
-func (rcv StringList) MkString() string {
+func (rcv StringList) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x string) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv StringList) RangeOf(from int, to int, fn func(int) string) StringList {
@@ -266,4 +295,25 @@ func (rcv StringList) Intersect(xs StringList) StringList {
 
 func (rcv StringList) Slice(from int, to int) StringList {
 	return rcv[from : to+1]
+}
+
+func (rcv StringList) FlatMapToStringList(fn func(string) StringList) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x string) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv StringList) MapToString(fn func(string) string) StringList {
+	xs := EmptyStringList()
+	rcv.ForEach(func(x string) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+// joins using the character and returns the string
+func (rcv StringList) Join(sep string) String {
+	return rcv.Intersperse(sep).MkString()
 }

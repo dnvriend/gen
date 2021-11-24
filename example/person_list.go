@@ -3,8 +3,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strings"
+	"github.com/google/go-cmp/cmp"
+	
 )
 
 type PersonList []Person
@@ -52,7 +53,7 @@ func (rcv PersonList) Head() Person {
 
 func (rcv PersonList) HeadOption() PersonOption {
 	if len(rcv) == 0 {
-		return nonePerson
+		return OptionOfPerson(nil)
 	} 
 	return OptionOfPerson(&rcv[0])
 }
@@ -73,12 +74,12 @@ func (rcv PersonList) Tail() PersonList {
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv PersonList) Filter(fn func(Person) bool) PersonList {
-	ys := make([]Person, 0)
-	for _, v := range rcv {
+	ys := EmptyPersonList()
+ 	rcv.ForEach(func(v Person) {
 		if fn(v) {
-			ys = append(ys, v)
+			ys = ys.Append(v)
 		}
-	}
+	})
 	return ys
 }
 
@@ -89,13 +90,7 @@ func (rcv PersonList) TakeWhile(fn func(Person) bool) PersonList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv PersonList) FilterNot(fn func(Person) bool) PersonList {
-	ys := make([]Person, 0)
-	for _, v := range rcv {
-		if !fn(v) {
-			ys = append(ys, v)
-		}
-	}
-	return ys
+	return rcv.Filter(func (x Person) bool { return !fn(x)})
 }
 
 // alias for FilterNot
@@ -119,6 +114,41 @@ func (rcv PersonList) ForEachWithLastFlag(fn func(bool, Person)) {
 	for i, x := range rcv {
 		fn(i+1 == len(rcv), x)
 	}
+}
+
+func (rcv PersonList) ForEachP(fn func(Person)) {
+	rcv.ForEachPP(10, fn)
+}
+
+func (rcv PersonList) ForEachPP(parallelism int, fn func(Person)) {
+	rcv.ForEachPPP(parallelism, fn, func() {})
+}
+
+func (rcv PersonList) ForEachPPP(parallelism int, fn func(Person), progressFn func()) {
+	nrJobs := rcv.Count()
+	input := make(chan Person, nrJobs)
+	output := make(chan bool, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				fn(x)
+				output <- true
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x Person) {
+		input <- x
+	})
+	close(input)
+
+	Range(0, nrJobs).ForEach(func() {
+		<-output
+		progressFn()
+	})
 }
 
 func (rcv PersonList) Count() int {
@@ -211,12 +241,12 @@ func (rcv PersonList) Partition(fn func(Person) bool) (PersonList, PersonList) {
 	return xs, ys
 }
 
-func (rcv PersonList) MkString() string {
+func (rcv PersonList) MkString() String {
 	var builder strings.Builder
 	rcv.ForEach(func(x Person) {
 		builder.WriteString(fmt.Sprintf("%v", x))
 	})
-	return builder.String()
+	return String(builder.String())
 }
 
 func (rcv PersonList) RangeOf(from int, to int, fn func(int) Person) PersonList {
@@ -265,4 +295,20 @@ func (rcv PersonList) Intersect(xs PersonList) PersonList {
 
 func (rcv PersonList) Slice(from int, to int) PersonList {
 	return rcv[from : to+1]
+}
+
+func (rcv PersonList) FlatMapToPersonList(fn func(Person) PersonList) PersonList {
+	xs := EmptyPersonList()
+	rcv.ForEach(func(x Person) {
+		xs = xs.AppendSlice(fn(x).ToSlice())
+	})
+	return xs
+}
+
+func (rcv PersonList) MapToPerson(fn func(Person) Person) PersonList {
+	xs := EmptyPersonList()
+	rcv.ForEach(func(x Person) {
+		xs = xs.Append(fn(x))
+	})
+	return xs
 }

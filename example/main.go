@@ -1,3 +1,5 @@
+//go:generate gen string -p main
+//go:generate gen range -p main
 //go:generate gen list -p main -t int
 //go:generate gen option -p main -t int
 //go:generate gen list -p main -t string
