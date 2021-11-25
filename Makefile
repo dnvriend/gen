@@ -1,4 +1,4 @@
-.PHONY: helpgo
+.PHONY: help build generate fmt test
 .DEFAULT_GOAL := help
 
 help:
@@ -19,8 +19,8 @@ build: test ## build gen
 bench: test ## run benchmarks
 	cd test && go test -bench=. && cd ..
 
-build-and-copy: ## build an copy gen to /usr/local/bin
-	rm /usr/local/bin/gen
+build: test ## build
 	go build
 	mv gen /usr/local/bin
+
 

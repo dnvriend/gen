@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type PersonList []Person
@@ -48,18 +47,18 @@ func (rcv PersonList) Reverse() PersonList {
 
 // panics when the list is empty
 func (rcv PersonList) Head() Person {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv PersonList) HeadOption() PersonOption {
 	if len(rcv) == 0 {
 		return OptionOfPerson(nil)
-	} 
+	}
 	return OptionOfPerson(&rcv[0])
 }
 
 func (rcv PersonList) Last() Person {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,12 +69,12 @@ func (rcv PersonList) Init() PersonList {
 // The rest of the collection without its first element.
 func (rcv PersonList) Tail() PersonList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv PersonList) Filter(fn func(Person) bool) PersonList {
 	ys := EmptyPersonList()
- 	rcv.ForEach(func(v Person) {
+	rcv.ForEach(func(v Person) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -90,7 +89,7 @@ func (rcv PersonList) TakeWhile(fn func(Person) bool) PersonList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv PersonList) FilterNot(fn func(Person) bool) PersonList {
-	return rcv.Filter(func (x Person) bool { return !fn(x)})
+	return rcv.Filter(func(x Person) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -309,6 +308,42 @@ func (rcv PersonList) MapToPerson(fn func(Person) Person) PersonList {
 	xs := EmptyPersonList()
 	rcv.ForEach(func(x Person) {
 		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+func (rcv PersonList) MapToPersonP(mapFn func(Person) Person) PersonList {
+	return rcv.MapToPersonPP(10, mapFn)
+}
+
+func (rcv PersonList) MapToPersonPP(parallelism int, mapFn func(Person) Person) PersonList {
+	return rcv.MapToPersonPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv PersonList) MapToPersonPPP(parallelism int, mapFn func(Person) Person, progressFn func()) PersonList {
+	nrJobs := rcv.Count()
+	input := make(chan Person, nrJobs)
+	output := make(chan Person, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x Person) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyPersonList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
 	})
 	return xs
 }

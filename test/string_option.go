@@ -3,7 +3,6 @@ package test
 
 import (
 	"github.com/google/go-cmp/cmp"
-	
 )
 
 type StringOption interface {
@@ -44,7 +43,7 @@ func (rcv StringNone) GetOrElse(fn func() string) string {
 	return fn()
 }
 
-func (rcv StringNone) ForEach(fn func(string)) {	
+func (rcv StringNone) ForEach(fn func(string)) {
 }
 
 func (rcv StringNone) IsEmpty() bool {
@@ -92,7 +91,7 @@ func (rcv StringSome) IsNotEmpty() bool {
 	return true
 }
 
-// alias 
+// alias
 func (rcv StringSome) IsDefined() bool {
 	return true
 }

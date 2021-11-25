@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type StringList []string
@@ -48,18 +47,18 @@ func (rcv StringList) Reverse() StringList {
 
 // panics when the list is empty
 func (rcv StringList) Head() string {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv StringList) HeadOption() StringOption {
 	if len(rcv) == 0 {
 		return OptionOfString(nil)
-	} 
+	}
 	return OptionOfString(&rcv[0])
 }
 
 func (rcv StringList) Last() string {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,12 +69,12 @@ func (rcv StringList) Init() StringList {
 // The rest of the collection without its first element.
 func (rcv StringList) Tail() StringList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv StringList) Filter(fn func(string) bool) StringList {
 	ys := EmptyStringList()
- 	rcv.ForEach(func(v string) {
+	rcv.ForEach(func(v string) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -90,7 +89,7 @@ func (rcv StringList) TakeWhile(fn func(string) bool) StringList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv StringList) FilterNot(fn func(string) bool) StringList {
-	return rcv.Filter(func (x string) bool { return !fn(x)})
+	return rcv.Filter(func(x string) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -309,6 +308,42 @@ func (rcv StringList) MapToString(fn func(string) string) StringList {
 	xs := EmptyStringList()
 	rcv.ForEach(func(x string) {
 		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+func (rcv StringList) MapToStringP(mapFn func(string) string) StringList {
+	return rcv.MapToStringPP(10, mapFn)
+}
+
+func (rcv StringList) MapToStringPP(parallelism int, mapFn func(string) string) StringList {
+	return rcv.MapToStringPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv StringList) MapToStringPPP(parallelism int, mapFn func(string) string, progressFn func()) StringList {
+	nrJobs := rcv.Count()
+	input := make(chan string, nrJobs)
+	output := make(chan string, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x string) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyStringList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
 	})
 	return xs
 }

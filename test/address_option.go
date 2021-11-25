@@ -3,7 +3,6 @@ package test
 
 import (
 	"github.com/google/go-cmp/cmp"
-	
 )
 
 type AddressOption interface {
@@ -44,7 +43,7 @@ func (rcv AddressNone) GetOrElse(fn func() Address) Address {
 	return fn()
 }
 
-func (rcv AddressNone) ForEach(fn func(Address)) {	
+func (rcv AddressNone) ForEach(fn func(Address)) {
 }
 
 func (rcv AddressNone) IsEmpty() bool {
@@ -92,7 +91,7 @@ func (rcv AddressSome) IsNotEmpty() bool {
 	return true
 }
 
-// alias 
+// alias
 func (rcv AddressSome) IsDefined() bool {
 	return true
 }

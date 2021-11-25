@@ -3,12 +3,12 @@ package typ
 
 type buildInfo struct {
 	ShortCommitHash string
-	LongCommitHash string
-	BuildDateTime string
+	LongCommitHash  string
+	BuildDateTime   string
 }
 
-var BuildInfo = buildInfo {
-	ShortCommitHash: "dbe1a2b",
-	LongCommitHash: "dbe1a2bbfde7063b4044a3ca756ecff487753e6c",
-	BuildDateTime: "2021-11-24T12:11:11+01:00",
+var BuildInfo = buildInfo{
+	ShortCommitHash: "2609999",
+	LongCommitHash:  "26099999a16f7345d938f3edad56e49b48f4595a",
+	BuildDateTime:   "2021-11-25T06:12:58+01:00",
 }

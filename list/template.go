@@ -307,6 +307,42 @@ func (rcv {{.TypeName}}List) MapTo{{.TypeName}}(fn func({{.Type}}) {{.Type}}) {{
 	})
 	return xs
 }
+
+func (rcv {{.TypeName}}List) MapTo{{.TypeName}}P(mapFn func({{.Type}}) {{.Type}}) {{.TypeName}}List {
+	return rcv.MapTo{{.TypeName}}PP(10, mapFn)
+}
+
+func (rcv {{.TypeName}}List) MapTo{{.TypeName}}PP(parallelism int, mapFn func({{.Type}}) {{.Type}}) {{.TypeName}}List {
+	return rcv.MapTo{{.TypeName}}PPP(parallelism, mapFn, func() {})
+}
+
+func (rcv {{.TypeName}}List) MapTo{{.TypeName}}PPP(parallelism int, mapFn func({{.Type}}) {{.Type}}, progressFn func()) {{.TypeName}}List {
+	nrJobs := rcv.Count()
+	input := make(chan {{.Type}}, nrJobs)
+	output := make(chan {{.Type}}, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x {{.Type}}) {
+		input <- x
+	})
+	close(input)
+
+	xs := Empty{{.TypeName}}List()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
+	})
+	return xs
+}
 `))
 
 var mapToTemplate = template.Must(template.New("generated").Parse(`

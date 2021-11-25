@@ -3,9 +3,8 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"github.com/google/go-cmp/cmp"
-	
+	"strings"
 )
 
 type CatList []Cat
@@ -48,18 +47,18 @@ func (rcv CatList) Reverse() CatList {
 
 // panics when the list is empty
 func (rcv CatList) Head() Cat {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv CatList) HeadOption() CatOption {
 	if len(rcv) == 0 {
 		return OptionOfCat(nil)
-	} 
+	}
 	return OptionOfCat(&rcv[0])
 }
 
 func (rcv CatList) Last() Cat {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,12 +69,12 @@ func (rcv CatList) Init() CatList {
 // The rest of the collection without its first element.
 func (rcv CatList) Tail() CatList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv CatList) Filter(fn func(Cat) bool) CatList {
 	ys := EmptyCatList()
- 	rcv.ForEach(func(v Cat) {
+	rcv.ForEach(func(v Cat) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -90,7 +89,7 @@ func (rcv CatList) TakeWhile(fn func(Cat) bool) CatList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv CatList) FilterNot(fn func(Cat) bool) CatList {
-	return rcv.Filter(func (x Cat) bool { return !fn(x)})
+	return rcv.Filter(func(x Cat) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -309,6 +308,42 @@ func (rcv CatList) MapToCat(fn func(Cat) Cat) CatList {
 	xs := EmptyCatList()
 	rcv.ForEach(func(x Cat) {
 		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+func (rcv CatList) MapToCatP(mapFn func(Cat) Cat) CatList {
+	return rcv.MapToCatPP(10, mapFn)
+}
+
+func (rcv CatList) MapToCatPP(parallelism int, mapFn func(Cat) Cat) CatList {
+	return rcv.MapToCatPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv CatList) MapToCatPPP(parallelism int, mapFn func(Cat) Cat, progressFn func()) CatList {
+	nrJobs := rcv.Count()
+	input := make(chan Cat, nrJobs)
+	output := make(chan Cat, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x Cat) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyCatList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
 	})
 	return xs
 }

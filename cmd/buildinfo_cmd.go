@@ -28,13 +28,13 @@ func init() {
 }
 
 func ShortCommitHash() string {
-	bytes, err := exec.Command("git" , "rev-parse", "--short", "HEAD").Output()
+	bytes, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
 	cobra.CheckErr(err)
 	return string(bytes)
 }
 
 func LongCommitHash() string {
-	bytes, err := exec.Command("git" , "rev-parse", "HEAD").Output()
+	bytes, err := exec.Command("git", "rev-parse", "HEAD").Output()
 	cobra.CheckErr(err)
 	return string(bytes)
 }
