@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	"sort"
 	"strings"
 	"github.com/google/go-cmp/cmp"
 	
@@ -241,10 +241,10 @@ func (rcv PersonList) Partition(fn func(Person) bool) (PersonList, PersonList) {
 	return xs, ys
 }
 
-func (rcv PersonList) MkString() String {
+func (rcv PersonList) MkString(fn func(Person) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x Person) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -311,4 +311,70 @@ func (rcv PersonList) MapToPerson(fn func(Person) Person) PersonList {
 		xs = xs.Append(fn(x))
 	})
 	return xs
+}
+
+func (rcv PersonList) MapToPersonP(mapFn func(Person) Person) PersonList {
+	return rcv.MapToPersonPP(10, mapFn)
+}
+
+func (rcv PersonList) MapToPersonPP(parallelism int, mapFn func(Person) Person) PersonList {
+	return rcv.MapToPersonPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv PersonList) MapToPersonPPP(parallelism int, mapFn func(Person) Person, progressFn func()) PersonList {
+	nrJobs := rcv.Count()
+	input := make(chan Person, nrJobs)
+	output := make(chan Person, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x Person) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyPersonList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
+	})
+	return xs
+}
+
+// implementation of 'sort.Interface'
+func (rcv PersonList) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv PersonList) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var PersonListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv PersonList) Less(i, j int) bool {
+	return PersonListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared, 
+// and based on that comparison the List will be sorted
+func (rcv PersonList) Sort(fn func(i Person, j Person) bool) PersonList {
+	PersonListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
 }

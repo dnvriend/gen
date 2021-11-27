@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	"sort"
 	"strings"
 	"github.com/google/go-cmp/cmp"
 	
@@ -241,10 +241,10 @@ func (rcv CatList) Partition(fn func(Cat) bool) (CatList, CatList) {
 	return xs, ys
 }
 
-func (rcv CatList) MkString() String {
+func (rcv CatList) MkString(fn func(Cat) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x Cat) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -311,4 +311,70 @@ func (rcv CatList) MapToCat(fn func(Cat) Cat) CatList {
 		xs = xs.Append(fn(x))
 	})
 	return xs
+}
+
+func (rcv CatList) MapToCatP(mapFn func(Cat) Cat) CatList {
+	return rcv.MapToCatPP(10, mapFn)
+}
+
+func (rcv CatList) MapToCatPP(parallelism int, mapFn func(Cat) Cat) CatList {
+	return rcv.MapToCatPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv CatList) MapToCatPPP(parallelism int, mapFn func(Cat) Cat, progressFn func()) CatList {
+	nrJobs := rcv.Count()
+	input := make(chan Cat, nrJobs)
+	output := make(chan Cat, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x Cat) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyCatList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
+	})
+	return xs
+}
+
+// implementation of 'sort.Interface'
+func (rcv CatList) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv CatList) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var CatListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv CatList) Less(i, j int) bool {
+	return CatListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared, 
+// and based on that comparison the List will be sorted
+func (rcv CatList) Sort(fn func(i Cat, j Cat) bool) CatList {
+	CatListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
 }

@@ -2,8 +2,8 @@
 package test
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"sort"
 	"strings"
 )
 
@@ -240,10 +240,10 @@ func (rcv IntList) Partition(fn func(int) bool) (IntList, IntList) {
 	return xs, ys
 }
 
-func (rcv IntList) MkString() String {
+func (rcv IntList) MkString(fn func(int) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x int) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -346,6 +346,36 @@ func (rcv IntList) MapToIntPPP(parallelism int, mapFn func(int) int, progressFn 
 		progressFn()
 	})
 	return xs
+}
+
+// implementation of 'sort.Interface'
+func (rcv IntList) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv IntList) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var IntListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv IntList) Less(i, j int) bool {
+	return IntListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared,
+// and based on that comparison the List will be sorted
+func (rcv IntList) Sort(fn func(i int, j int) bool) IntList {
+	IntListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
 }
 
 func (rcv IntList) MapToString(fn func(int) string) StringList {

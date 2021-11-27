@@ -1,6 +1,3 @@
-//go:generate gen range -p test
-//go:generate gen list -p test -t int -f string -f cat -m string
-//go:generate gen list -p test -t string -m int -f cat
 package test
 
 import (
@@ -9,27 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
-
-//go:generate gen list -p test -t Person -m Cat
-type Person struct {
-	Name      string
-	Age       int
-	Addresses AddressList
-	Cats      CatList
-}
-
-//go:generate gen list -p test -t Cat
-type Cat struct {
-	Name string
-	Age  int
-}
-
-//go:generate gen list -p test -t Address
-type Address struct {
-	Street      string
-	HouseNumber int
-	Zip         string
-}
 
 func TestAdd(t *testing.T) {
 	xs := EmptyStringList().Append("a").ToSlice()
@@ -72,15 +48,10 @@ func TestPartition(t *testing.T) {
 
 func TestMkString(t *testing.T) {
 	xs := EmptyIntList().Concat(1, 2, 3, 4)
-	str := xs.MkString().Str()
+	str := xs.MkString(func(i int) string {
+		return fmt.Sprintf("%v", i)
+	}).Str()
 	assert.Equal(t, "1234", str)
-}
-
-func TestRange(t *testing.T) {
-	xs := EmptyIntList().Range(1, 4).ToSlice()
-	ys := EmptyIntList().RangeOf(1, 4, func(x int) int { return x }).ToSlice()
-	assert.Equal(t, []int{1, 2, 3, 4}, xs)
-	assert.Equal(t, []int{1, 2, 3, 4}, ys)
 }
 
 func TestDistinct(t *testing.T) {
@@ -142,6 +113,21 @@ func TestJoin(t *testing.T) {
 		Append("/").
 		Str()
 	assert.Equal(t, "a/b/", x)
+}
+
+func TestSort(t *testing.T) {
+	xs := EmptyCatList().AppendSlice([]Cat{
+		{Name: "a", Age: 1},
+		{Name: "d", Age: 4},
+		{Name: "c", Age: 3},
+		{Name: "b", Age: 2},
+	})
+
+	xs.Sort(func(i Cat, j Cat) bool {
+		return i.Age < j.Age
+	})
+
+	assert.Equal(t, []Cat{{"a", 1}, {"b", 2}, {"c", 3}, {"d", 4}}, xs.ToSlice())
 }
 
 var result IntList

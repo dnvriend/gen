@@ -53,7 +53,7 @@ func buildImports(imports []string) string {
 		Imports: typ.
 			EmptyStringList().
 			AppendAll(imports...).
-			Append("fmt").
+			Append("sort").
 			Append("strings").
 			Append("github.com/google/go-cmp/cmp").
 			ToSlice(),

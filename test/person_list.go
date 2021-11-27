@@ -2,8 +2,8 @@
 package test
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"sort"
 	"strings"
 )
 
@@ -240,10 +240,10 @@ func (rcv PersonList) Partition(fn func(Person) bool) (PersonList, PersonList) {
 	return xs, ys
 }
 
-func (rcv PersonList) MkString() String {
+func (rcv PersonList) MkString(fn func(Person) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x Person) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -346,6 +346,36 @@ func (rcv PersonList) MapToPersonPPP(parallelism int, mapFn func(Person) Person,
 		progressFn()
 	})
 	return xs
+}
+
+// implementation of 'sort.Interface'
+func (rcv PersonList) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv PersonList) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var PersonListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv PersonList) Less(i, j int) bool {
+	return PersonListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared,
+// and based on that comparison the List will be sorted
+func (rcv PersonList) Sort(fn func(i Person, j Person) bool) PersonList {
+	PersonListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
 }
 
 func (rcv PersonList) MapToCat(fn func(Person) Cat) CatList {

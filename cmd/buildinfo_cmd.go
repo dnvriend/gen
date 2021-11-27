@@ -17,7 +17,6 @@ var buildinfoCmd = &cobra.Command{
 		packageName := cmd.GetStringParam("package")
 		generated := buildinfo.Generate(ShortCommitHash(), LongCommitHash(), CurrentDateTime(), packageName)
 		WriteToFile(generated)
-		fmt.Println("buildinfo.go generated")
 	},
 }
 

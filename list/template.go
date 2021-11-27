@@ -1,6 +1,8 @@
 package list
 
-import "text/template"
+import (
+	"text/template"
+)
 
 var baseTmpl = template.Must(template.New("generated").Parse(`
 type {{.TypeName}}List []{{.Type}}
@@ -236,10 +238,10 @@ func (rcv {{.TypeName}}List) Partition(fn func({{.Type}}) bool) ({{.TypeName}}Li
 	return xs, ys
 }
 
-func (rcv {{.TypeName}}List) MkString() String {
+func (rcv {{.TypeName}}List) MkString(fn func({{.Type}}) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x {{.Type}}) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -343,6 +345,36 @@ func (rcv {{.TypeName}}List) MapTo{{.TypeName}}PPP(parallelism int, mapFn func({
 	})
 	return xs
 }
+
+// implementation of 'sort.Interface'
+func (rcv {{.TypeName}}List) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv {{.TypeName}}List) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var {{.TypeName}}ListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv {{.TypeName}}List) Less(i, j int) bool {
+	return {{.TypeName}}ListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared, 
+// and based on that comparison the List will be sorted
+func (rcv {{.TypeName}}List) Sort(fn func(i {{.Type}}, j {{.Type}}) bool) {{.TypeName}}List {
+	{{.TypeName}}ListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
+}
 `))
 
 var mapToTemplate = template.Must(template.New("generated").Parse(`
@@ -438,7 +470,7 @@ func (rcv IntList) Range(from int, to int) IntList {
 var stringListTemplate = template.Must(template.New("generated").Parse(`
 // joins using the character and returns the string
 func (rcv StringList) Join(sep string) String {
-	return rcv.Intersperse(sep).MkString()
+	return rcv.Intersperse(sep).MkString(func (x string) string { return x})
 }
 `))
 

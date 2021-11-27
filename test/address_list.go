@@ -2,8 +2,8 @@
 package test
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"sort"
 	"strings"
 )
 
@@ -240,10 +240,10 @@ func (rcv AddressList) Partition(fn func(Address) bool) (AddressList, AddressLis
 	return xs, ys
 }
 
-func (rcv AddressList) MkString() String {
+func (rcv AddressList) MkString(fn func(Address) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x Address) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -346,4 +346,34 @@ func (rcv AddressList) MapToAddressPPP(parallelism int, mapFn func(Address) Addr
 		progressFn()
 	})
 	return xs
+}
+
+// implementation of 'sort.Interface'
+func (rcv AddressList) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv AddressList) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var AddressListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv AddressList) Less(i, j int) bool {
+	return AddressListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared,
+// and based on that comparison the List will be sorted
+func (rcv AddressList) Sort(fn func(i Address, j Address) bool) AddressList {
+	AddressListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
 }

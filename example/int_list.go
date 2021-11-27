@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	"sort"
 	"strings"
 	"github.com/google/go-cmp/cmp"
 	
@@ -241,10 +241,10 @@ func (rcv IntList) Partition(fn func(int) bool) (IntList, IntList) {
 	return xs, ys
 }
 
-func (rcv IntList) MkString() String {
+func (rcv IntList) MkString(fn func(int) string) String {
 	var builder strings.Builder
 	rcv.ForEach(func(x int) {
-		builder.WriteString(fmt.Sprintf("%v", x))
+		builder.WriteString(fn(x))
 	})
 	return String(builder.String())
 }
@@ -309,6 +309,132 @@ func (rcv IntList) MapToInt(fn func(int) int) IntList {
 	xs := EmptyIntList()
 	rcv.ForEach(func(x int) {
 		xs = xs.Append(fn(x))
+	})
+	return xs
+}
+
+func (rcv IntList) MapToIntP(mapFn func(int) int) IntList {
+	return rcv.MapToIntPP(10, mapFn)
+}
+
+func (rcv IntList) MapToIntPP(parallelism int, mapFn func(int) int) IntList {
+	return rcv.MapToIntPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv IntList) MapToIntPPP(parallelism int, mapFn func(int) int, progressFn func()) IntList {
+	nrJobs := rcv.Count()
+	input := make(chan int, nrJobs)
+	output := make(chan int, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x int) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyIntList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
+	})
+	return xs
+}
+
+// implementation of 'sort.Interface'
+func (rcv IntList) Len() int {
+	return rcv.Count()
+}
+
+// implementation of 'sort.Interface'
+func (rcv IntList) Swap(i, j int) {
+	rcv[i], rcv[j] = rcv[j], rcv[i]
+}
+
+// implementation of sort.Interface
+var IntListLessFunc = func(i, j int) bool {
+	panic("Not implemented")
+}
+
+// implementation of sort.Interface
+func (rcv IntList) Less(i, j int) bool {
+	return IntListLessFunc(i, j)
+}
+
+// i and j are two objects that need to be compared, 
+// and based on that comparison the List will be sorted
+func (rcv IntList) Sort(fn func(i int, j int) bool) IntList {
+	IntListLessFunc = func(i, j int) bool {
+		return fn(rcv[i], rcv[j])
+	}
+	sort.Sort(rcv)
+	return rcv
+}
+
+func (rcv IntList) MapToString(fn func(int) string) StringList {
+	ys := make([]string, 0)
+	for _, x := range rcv {
+		ys = append(ys, fn(x))
+	}
+	return ys
+}
+
+func (rcv IntList) MapToStringWithIndex(fn func(int, int) string) StringList {
+	ys := make([]string, 0)
+	for i, x := range rcv {
+		ys = append(ys, fn(i, x))
+	}
+	return ys
+}
+
+func (rcv IntList) MapToStringWithLastFlag(fn func(bool, int) string) StringList {
+	ys := make([]string, 0)
+	for i, x := range rcv {
+		ys = append(ys, fn(i+1 == len(rcv), x))
+	}
+	return ys
+}
+
+func (rcv IntList) MapToStringP(mapFn func(int) string) StringList {
+	return rcv.MapToStringPP(10, mapFn)
+}
+
+func (rcv IntList) MapToStringPP(parallelism int, mapFn func(int) string) StringList {
+	return rcv.MapToStringPPP(parallelism, mapFn, func() {})
+}
+
+func (rcv IntList) MapToStringPPP(parallelism int, mapFn func(int) string, progressFn func()) StringList {
+	nrJobs := rcv.Count()
+	input := make(chan int, nrJobs)
+	output := make(chan string, nrJobs)
+
+	// make workers
+	Range(0, parallelism).ForEach(func() {
+		go func() {
+			for x := range input {
+				output <- mapFn(x)
+			}
+		}()
+	})
+
+	// put commands on the channel
+	rcv.ForEach(func(x int) {
+		input <- x
+	})
+	close(input)
+
+	xs := EmptyStringList()
+	Range(0, nrJobs).ForEach(func() {
+		xs = xs.Append(<-output)
+		progressFn()
 	})
 	return xs
 }
