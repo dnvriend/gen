@@ -310,6 +310,14 @@ func (rcv {{.TypeName}}List) MapTo{{.TypeName}}(fn func({{.Type}}) {{.Type}}) {{
 	return xs
 }
 
+func (rcv {{.TypeName}}List) MapTo{{.TypeName}}WithIndex(fn func(int,{{.Type}}) {{.Type}}) {{.TypeName}}List {
+	xs := Empty{{.TypeName}}List()
+	rcv.ForEachWithIndex(func(i int, x {{.Type}}) {
+		xs = xs.Append(fn(i,x))
+	})
+	return xs
+}
+
 func (rcv {{.TypeName}}List) MapTo{{.TypeName}}P(mapFn func({{.Type}}) {{.Type}}) {{.TypeName}}List {
 	return rcv.MapTo{{.TypeName}}PP(10, mapFn)
 }
