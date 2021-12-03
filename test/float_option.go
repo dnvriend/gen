@@ -3,7 +3,6 @@ package test
 
 import (
 	"github.com/google/go-cmp/cmp"
-	
 )
 
 type FloatOption interface {
@@ -16,6 +15,7 @@ type FloatOption interface {
 	Count() int
 	Contains(a Float) bool
 	ContainsNot(a Float) bool
+	FoldToString(zero string, fn func(Float) string) string
 }
 
 type FloatSome struct {
@@ -44,7 +44,7 @@ func (rcv FloatNone) GetOrElse(fn func() Float) Float {
 	return fn()
 }
 
-func (rcv FloatNone) ForEach(fn func(Float)) {	
+func (rcv FloatNone) ForEach(fn func(Float)) {
 }
 
 func (rcv FloatNone) IsEmpty() bool {
@@ -71,6 +71,10 @@ func (rcv FloatNone) ContainsNot(a Float) bool {
 	return true
 }
 
+func (rcv FloatNone) FoldToString(zero string, fn func(Float) string) string {
+	return zero
+}
+
 // some
 func (rcv FloatSome) Get() Float {
 	return rcv.a
@@ -92,7 +96,7 @@ func (rcv FloatSome) IsNotEmpty() bool {
 	return true
 }
 
-// alias 
+// alias
 func (rcv FloatSome) IsDefined() bool {
 	return true
 }
@@ -107,4 +111,8 @@ func (rcv FloatSome) Contains(a Float) bool {
 
 func (rcv FloatSome) ContainsNot(a Float) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv FloatSome) FoldToString(zero string, fn func(Float) string) string {
+	return fn(rcv.Get())
 }

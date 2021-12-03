@@ -312,6 +312,14 @@ func (rcv StringList) MapToString(fn func(string) string) StringList {
 	return xs
 }
 
+func (rcv StringList) MapToStringWithIndex(fn func(int, string) string) StringList {
+	xs := EmptyStringList()
+	rcv.ForEachWithIndex(func(i int, x string) {
+		xs = xs.Append(fn(i, x))
+	})
+	return xs
+}
+
 func (rcv StringList) MapToStringP(mapFn func(string) string) StringList {
 	return rcv.MapToStringPP(10, mapFn)
 }

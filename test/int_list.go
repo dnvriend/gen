@@ -312,6 +312,14 @@ func (rcv IntList) MapToInt(fn func(int) int) IntList {
 	return xs
 }
 
+func (rcv IntList) MapToIntWithIndex(fn func(int, int) int) IntList {
+	xs := EmptyIntList()
+	rcv.ForEachWithIndex(func(i int, x int) {
+		xs = xs.Append(fn(i, x))
+	})
+	return xs
+}
+
 func (rcv IntList) MapToIntP(mapFn func(int) int) IntList {
 	return rcv.MapToIntPP(10, mapFn)
 }

@@ -15,6 +15,7 @@ type PersonOption interface {
 	Count() int
 	Contains(a Person) bool
 	ContainsNot(a Person) bool
+	FoldToString(zero string, fn func(Person) string) string
 }
 
 type PersonSome struct {
@@ -70,6 +71,10 @@ func (rcv PersonNone) ContainsNot(a Person) bool {
 	return true
 }
 
+func (rcv PersonNone) FoldToString(zero string, fn func(Person) string) string {
+	return zero
+}
+
 // some
 func (rcv PersonSome) Get() Person {
 	return rcv.a
@@ -106,4 +111,8 @@ func (rcv PersonSome) Contains(a Person) bool {
 
 func (rcv PersonSome) ContainsNot(a Person) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv PersonSome) FoldToString(zero string, fn func(Person) string) string {
+	return fn(rcv.Get())
 }

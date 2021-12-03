@@ -15,6 +15,7 @@ type AddressOption interface {
 	Count() int
 	Contains(a Address) bool
 	ContainsNot(a Address) bool
+	FoldToString(zero string, fn func(Address) string) string
 }
 
 type AddressSome struct {
@@ -70,6 +71,10 @@ func (rcv AddressNone) ContainsNot(a Address) bool {
 	return true
 }
 
+func (rcv AddressNone) FoldToString(zero string, fn func(Address) string) string {
+	return zero
+}
+
 // some
 func (rcv AddressSome) Get() Address {
 	return rcv.a
@@ -106,4 +111,8 @@ func (rcv AddressSome) Contains(a Address) bool {
 
 func (rcv AddressSome) ContainsNot(a Address) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv AddressSome) FoldToString(zero string, fn func(Address) string) string {
+	return fn(rcv.Get())
 }

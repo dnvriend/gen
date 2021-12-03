@@ -8,7 +8,7 @@ type buildInfo struct {
 }
 
 var BuildInfo = buildInfo{
-	ShortCommitHash: "adfbafb",
-	LongCommitHash:  "adfbafb0856c8c4099a821a5acf1b5b4e7677c67",
-	BuildDateTime:   "2021-11-27T05:55:56+01:00",
+	ShortCommitHash: "9ac857c",
+	LongCommitHash:  "9ac857cfb297e9575de9109c973bd7ac77f21aa9",
+	BuildDateTime:   "2021-12-03T08:58:20+01:00",
 }

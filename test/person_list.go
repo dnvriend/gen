@@ -312,6 +312,14 @@ func (rcv PersonList) MapToPerson(fn func(Person) Person) PersonList {
 	return xs
 }
 
+func (rcv PersonList) MapToPersonWithIndex(fn func(int, Person) Person) PersonList {
+	xs := EmptyPersonList()
+	rcv.ForEachWithIndex(func(i int, x Person) {
+		xs = xs.Append(fn(i, x))
+	})
+	return xs
+}
+
 func (rcv PersonList) MapToPersonP(mapFn func(Person) Person) PersonList {
 	return rcv.MapToPersonPP(10, mapFn)
 }

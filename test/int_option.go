@@ -15,6 +15,7 @@ type IntOption interface {
 	Count() int
 	Contains(a int) bool
 	ContainsNot(a int) bool
+	FoldToString(zero string, fn func(int) string) string
 }
 
 type IntSome struct {
@@ -70,6 +71,10 @@ func (rcv IntNone) ContainsNot(a int) bool {
 	return true
 }
 
+func (rcv IntNone) FoldToString(zero string, fn func(int) string) string {
+	return zero
+}
+
 // some
 func (rcv IntSome) Get() int {
 	return rcv.a
@@ -106,4 +111,8 @@ func (rcv IntSome) Contains(a int) bool {
 
 func (rcv IntSome) ContainsNot(a int) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv IntSome) FoldToString(zero string, fn func(int) string) string {
+	return fn(rcv.Get())
 }

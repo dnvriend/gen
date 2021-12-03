@@ -312,6 +312,14 @@ func (rcv AddressList) MapToAddress(fn func(Address) Address) AddressList {
 	return xs
 }
 
+func (rcv AddressList) MapToAddressWithIndex(fn func(int, Address) Address) AddressList {
+	xs := EmptyAddressList()
+	rcv.ForEachWithIndex(func(i int, x Address) {
+		xs = xs.Append(fn(i, x))
+	})
+	return xs
+}
+
 func (rcv AddressList) MapToAddressP(mapFn func(Address) Address) AddressList {
 	return rcv.MapToAddressPP(10, mapFn)
 }

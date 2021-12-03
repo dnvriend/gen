@@ -15,6 +15,7 @@ type CatOption interface {
 	Count() int
 	Contains(a Cat) bool
 	ContainsNot(a Cat) bool
+	FoldToString(zero string, fn func(Cat) string) string
 }
 
 type CatSome struct {
@@ -70,6 +71,10 @@ func (rcv CatNone) ContainsNot(a Cat) bool {
 	return true
 }
 
+func (rcv CatNone) FoldToString(zero string, fn func(Cat) string) string {
+	return zero
+}
+
 // some
 func (rcv CatSome) Get() Cat {
 	return rcv.a
@@ -106,4 +111,8 @@ func (rcv CatSome) Contains(a Cat) bool {
 
 func (rcv CatSome) ContainsNot(a Cat) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv CatSome) FoldToString(zero string, fn func(Cat) string) string {
+	return fn(rcv.Get())
 }

@@ -2,10 +2,9 @@
 package test
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"sort"
 	"strings"
-	"github.com/google/go-cmp/cmp"
-	
 )
 
 type FloatList []Float
@@ -48,18 +47,18 @@ func (rcv FloatList) Reverse() FloatList {
 
 // panics when the list is empty
 func (rcv FloatList) Head() Float {
-	return rcv[0] 
+	return rcv[0]
 }
 
 func (rcv FloatList) HeadOption() FloatOption {
 	if len(rcv) == 0 {
 		return OptionOfFloat(nil)
-	} 
+	}
 	return OptionOfFloat(&rcv[0])
 }
 
 func (rcv FloatList) Last() Float {
-	return rcv[len(rcv)-1] 
+	return rcv[len(rcv)-1]
 }
 
 // returns the initial part of the collection, without the last element
@@ -70,12 +69,12 @@ func (rcv FloatList) Init() FloatList {
 // The rest of the collection without its first element.
 func (rcv FloatList) Tail() FloatList {
 	return rcv[1:]
-} 
+}
 
 // Selects all elements of this list which satisfy a predicate.
 func (rcv FloatList) Filter(fn func(Float) bool) FloatList {
 	ys := EmptyFloatList()
- 	rcv.ForEach(func(v Float) {
+	rcv.ForEach(func(v Float) {
 		if fn(v) {
 			ys = ys.Append(v)
 		}
@@ -90,7 +89,7 @@ func (rcv FloatList) TakeWhile(fn func(Float) bool) FloatList {
 
 // Selects all elements of this list which do not satisfy a predicate.
 func (rcv FloatList) FilterNot(fn func(Float) bool) FloatList {
-	return rcv.Filter(func (x Float) bool { return !fn(x)})
+	return rcv.Filter(func(x Float) bool { return !fn(x) })
 }
 
 // alias for FilterNot
@@ -313,10 +312,10 @@ func (rcv FloatList) MapToFloat(fn func(Float) Float) FloatList {
 	return xs
 }
 
-func (rcv FloatList) MapToFloatWithIndex(fn func(int,Float) Float) FloatList {
+func (rcv FloatList) MapToFloatWithIndex(fn func(int, Float) Float) FloatList {
 	xs := EmptyFloatList()
 	rcv.ForEachWithIndex(func(i int, x Float) {
-		xs = xs.Append(fn(i,x))
+		xs = xs.Append(fn(i, x))
 	})
 	return xs
 }
@@ -377,7 +376,7 @@ func (rcv FloatList) Less(i, j int) bool {
 	return FloatListLessFunc(i, j)
 }
 
-// i and j are two objects that need to be compared, 
+// i and j are two objects that need to be compared,
 // and based on that comparison the List will be sorted
 func (rcv FloatList) Sort(fn func(i Float, j Float) bool) FloatList {
 	FloatListLessFunc = func(i, j int) bool {

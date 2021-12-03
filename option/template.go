@@ -13,6 +13,7 @@ type {{.TypeName}}Option interface {
 	Count() int
 	Contains(a {{.Type}}) bool
 	ContainsNot(a {{.Type}}) bool
+	FoldToString(zero string, fn func({{.Type}}) string) string
 }
 
 type {{.TypeName}}Some struct {
@@ -68,6 +69,10 @@ func (rcv {{.TypeName}}None) ContainsNot(a {{.Type}}) bool {
 	return true
 }
 
+func (rcv {{.TypeName}}None) FoldToString(zero string, fn func({{.Type}}) string) string {
+	return zero
+}
+
 // some
 func (rcv {{.TypeName}}Some) Get() {{.Type}} {
 	return rcv.a
@@ -104,6 +109,10 @@ func (rcv {{.TypeName}}Some) Contains(a {{.Type}}) bool {
 
 func (rcv {{.TypeName}}Some) ContainsNot(a {{.Type}}) bool {
 	return !rcv.Contains(a)
+}
+
+func (rcv {{.TypeName}}Some) FoldToString(zero string, fn func({{.Type}}) string) string {	
+	return fn(rcv.Get()) 	
 }
 `))
 

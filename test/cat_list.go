@@ -312,6 +312,14 @@ func (rcv CatList) MapToCat(fn func(Cat) Cat) CatList {
 	return xs
 }
 
+func (rcv CatList) MapToCatWithIndex(fn func(int, Cat) Cat) CatList {
+	xs := EmptyCatList()
+	rcv.ForEachWithIndex(func(i int, x Cat) {
+		xs = xs.Append(fn(i, x))
+	})
+	return xs
+}
+
 func (rcv CatList) MapToCatP(mapFn func(Cat) Cat) CatList {
 	return rcv.MapToCatPP(10, mapFn)
 }

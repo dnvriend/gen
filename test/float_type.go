@@ -4,7 +4,6 @@ package test
 import (
 	"fmt"
 	"math"
-	
 )
 
 type Float float64
@@ -83,6 +82,7 @@ func (rcv Float) Tan() Float {
 func (rcv Float) Atan() Float {
 	return rcv.Apply(math.Atan)
 }
+
 // Sincos returns Sin(x), Cos(x).
 func (rcv Float) Sincos() (Float, Float) {
 	x, y := math.Sincos(rcv.Unwrap())
@@ -176,18 +176,18 @@ func (rcv Float) Apply(fn func(float64) float64) Float {
 }
 
 // curried and 1st function applied with rcv
-func (rcv Float) curry2(fn func(float64, float64) float64) func (Float) Float {
+func (rcv Float) curry2(fn func(float64, float64) float64) func(Float) Float {
 	f := curry2(fn)(rcv.Unwrap())
 	return wrapFloat11(f)
 }
 
-func wrapFloat11(fn func(float64) float64) func (Float) Float {
+func wrapFloat11(fn func(float64) float64) func(Float) Float {
 	return func(x Float) Float {
 		return ToFloat(fn(x.Unwrap()))
 	}
 }
 
-func curry2(fn func(float64, float64) float64) func (float64) func (float64) float64 {
+func curry2(fn func(float64, float64) float64) func(float64) func(float64) float64 {
 	return func(x float64) func(float64) float64 {
 		return func(y float64) float64 {
 			return fn(x, y)
