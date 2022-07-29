@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dnvriend/gen/buildinfo"
 	"github.com/spf13/cobra"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -13,6 +14,7 @@ var buildinfoCmd = &cobra.Command{
 	Use:   "buildinfo",
 	Short: "generates build info code",
 	Run: func(_cmd *cobra.Command, args []string) {
+		checkGitDirExists()
 		cmd := ToCobraCommand(_cmd)
 		packageName := cmd.GetStringParam("package")
 		generated := buildinfo.Generate(ShortCommitHash(), LongCommitHash(), CurrentDateTime(), packageName)
@@ -24,6 +26,14 @@ func init() {
 	rootCmd.AddCommand(buildinfoCmd)
 	buildinfoCmd.Flags().StringP("package", "p", "", "the package name")
 	buildinfoCmd.Flags().BoolP("stdout", "s", false, "print to stdout")
+}
+
+func checkGitDirExists() {
+	dir, _ := filepath.Abs("./.git")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		fmt.Printf("[BuildInfo]: No '.git' directory found at '%v', maybe you need to do a 'git init'?\n", dir)
+		os.Exit(1)
+	}
 }
 
 func ShortCommitHash() string {
