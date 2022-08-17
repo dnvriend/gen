@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -61,4 +62,33 @@ func TestNone(t *testing.T) {
 	assert.Equal(t, false, o.IsDefined())
 	assert.Equal(t, false, o.Contains(cat))
 	assert.Equal(t, true, o.ContainsNot(cat))
+}
+
+func TestApply234(t *testing.T) {
+	foo := "foo"
+	bar := "bar"
+	baz := "baz"
+	quz := "quz"
+	o_foo := OptionOfString(&foo)
+	o_bar := OptionOfString(&bar)
+	o_baz := OptionOfString(&baz)
+	o_quz := OptionOfString(&quz)
+
+	res := o_foo.Apply2(o_bar, func(s string, s2 string) string {
+		return fmt.Sprintf("%s-%s", s, s2)
+	})
+	foobar := "foo-bar"
+	assert.Equal(t, OptionOfString(&foobar), res)
+
+	res = o_foo.Apply3(o_bar, o_baz, func(s string, s2 string, s3 string) string {
+		return fmt.Sprintf("%s-%s-%s", s, s2, s3)
+	})
+	foobarbaz := "foo-bar-baz"
+	assert.Equal(t, OptionOfString(&foobarbaz), res)
+
+	res = o_foo.Apply4(o_bar, o_baz, o_quz, func(s string, s2 string, s3 string, s4 string) string {
+		return fmt.Sprintf("%s-%s-%s-%s", s, s2, s3, s4)
+	})
+	foobarbazquz := "foo-bar-baz-quz"
+	assert.Equal(t, OptionOfString(&foobarbazquz), res)
 }

@@ -14,7 +14,7 @@ var buildinfoCmd = &cobra.Command{
 	Use:   "buildinfo",
 	Short: "generates build info code",
 	Run: func(_cmd *cobra.Command, args []string) {
-		checkGitDirExists()
+		//checkGitDirExists()
 		cmd := ToCobraCommand(_cmd)
 		packageName := cmd.GetStringParam("package")
 		generated := buildinfo.Generate(ShortCommitHash(), LongCommitHash(), CurrentDateTime(), packageName)

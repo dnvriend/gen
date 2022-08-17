@@ -14,6 +14,9 @@ type {{.TypeName}}Option interface {
 	Contains(a {{.Type}}) bool
 	ContainsNot(a {{.Type}}) bool
 	FoldToString(zero string, fn func({{.Type}}) string) string
+	Apply2(a {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option
+	Apply3(a {{.TypeName}}Option, b {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option
+	Apply4(a {{.TypeName}}Option, b {{.TypeName}}Option, c {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}, {{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option
 }
 
 type {{.TypeName}}Some struct {
@@ -73,6 +76,18 @@ func (rcv {{.TypeName}}None) FoldToString(zero string, fn func({{.Type}}) string
 	return zero
 }
 
+func (rcv {{.TypeName}}None) Apply2(a {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option {
+	return none{{.TypeName}}
+}
+
+func (rcv {{.TypeName}}None) Apply3(a {{.TypeName}}Option, b {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option {
+	return none{{.TypeName}}
+}
+
+func (rcv {{.TypeName}}None) Apply4(a {{.TypeName}}Option, b {{.TypeName}}Option, c {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}, {{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option {
+	return none{{.TypeName}}
+}
+
 // some
 func (rcv {{.TypeName}}Some) Get() {{.Type}} {
 	return rcv.a
@@ -113,6 +128,30 @@ func (rcv {{.TypeName}}Some) ContainsNot(a {{.Type}}) bool {
 
 func (rcv {{.TypeName}}Some) FoldToString(zero string, fn func({{.Type}}) string) string {	
 	return fn(rcv.Get()) 	
+}
+
+func (rcv {{.TypeName}}Some) Apply2(a {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option {
+	if rcv.IsDefined() && a.IsDefined() {
+		return {{.TypeName}}Some { fn(rcv.Get(), a.Get()) }
+	} else {
+		return none{{.TypeName}}
+	}	
+}
+
+func (rcv {{.TypeName}}Some) Apply3(a {{.TypeName}}Option, b {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return {{.TypeName}}Some { fn(rcv.Get(), a.Get(), b.Get()) }
+	} else {
+		return none{{.TypeName}}
+	}
+}
+
+func (rcv {{.TypeName}}Some) Apply4(a {{.TypeName}}Option, b {{.TypeName}}Option, c {{.TypeName}}Option, fn func({{.Type}}, {{.Type}}, {{.Type}}, {{.Type}}) {{.Type}}) {{.TypeName}}Option {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return {{.TypeName}}Some { fn(rcv.Get(), a.Get(), b.Get(), c.Get()) }
+	} else {
+		return none{{.TypeName}}
+	}
 }
 `))
 

@@ -16,6 +16,9 @@ type PersonOption interface {
 	Contains(a Person) bool
 	ContainsNot(a Person) bool
 	FoldToString(zero string, fn func(Person) string) string
+	Apply2(a PersonOption, fn func(Person, Person) Person) PersonOption
+	Apply3(a PersonOption, b PersonOption, fn func(Person, Person, Person) Person) PersonOption
+	Apply4(a PersonOption, b PersonOption, c PersonOption, fn func(Person, Person, Person, Person) Person) PersonOption
 }
 
 type PersonSome struct {
@@ -75,6 +78,18 @@ func (rcv PersonNone) FoldToString(zero string, fn func(Person) string) string {
 	return zero
 }
 
+func (rcv PersonNone) Apply2(a PersonOption, fn func(Person, Person) Person) PersonOption {
+	return nonePerson
+}
+
+func (rcv PersonNone) Apply3(a PersonOption, b PersonOption, fn func(Person, Person, Person) Person) PersonOption {
+	return nonePerson
+}
+
+func (rcv PersonNone) Apply4(a PersonOption, b PersonOption, c PersonOption, fn func(Person, Person, Person, Person) Person) PersonOption {
+	return nonePerson
+}
+
 // some
 func (rcv PersonSome) Get() Person {
 	return rcv.a
@@ -115,4 +130,28 @@ func (rcv PersonSome) ContainsNot(a Person) bool {
 
 func (rcv PersonSome) FoldToString(zero string, fn func(Person) string) string {
 	return fn(rcv.Get())
+}
+
+func (rcv PersonSome) Apply2(a PersonOption, fn func(Person, Person) Person) PersonOption {
+	if rcv.IsDefined() && a.IsDefined() {
+		return PersonSome{fn(rcv.Get(), a.Get())}
+	} else {
+		return nonePerson
+	}
+}
+
+func (rcv PersonSome) Apply3(a PersonOption, b PersonOption, fn func(Person, Person, Person) Person) PersonOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return PersonSome{fn(rcv.Get(), a.Get(), b.Get())}
+	} else {
+		return nonePerson
+	}
+}
+
+func (rcv PersonSome) Apply4(a PersonOption, b PersonOption, c PersonOption, fn func(Person, Person, Person, Person) Person) PersonOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return PersonSome{fn(rcv.Get(), a.Get(), b.Get(), c.Get())}
+	} else {
+		return nonePerson
+	}
 }

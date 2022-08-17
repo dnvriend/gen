@@ -16,6 +16,9 @@ type AddressOption interface {
 	Contains(a Address) bool
 	ContainsNot(a Address) bool
 	FoldToString(zero string, fn func(Address) string) string
+	Apply2(a AddressOption, fn func(Address, Address) Address) AddressOption
+	Apply3(a AddressOption, b AddressOption, fn func(Address, Address, Address) Address) AddressOption
+	Apply4(a AddressOption, b AddressOption, c AddressOption, fn func(Address, Address, Address, Address) Address) AddressOption
 }
 
 type AddressSome struct {
@@ -75,6 +78,18 @@ func (rcv AddressNone) FoldToString(zero string, fn func(Address) string) string
 	return zero
 }
 
+func (rcv AddressNone) Apply2(a AddressOption, fn func(Address, Address) Address) AddressOption {
+	return noneAddress
+}
+
+func (rcv AddressNone) Apply3(a AddressOption, b AddressOption, fn func(Address, Address, Address) Address) AddressOption {
+	return noneAddress
+}
+
+func (rcv AddressNone) Apply4(a AddressOption, b AddressOption, c AddressOption, fn func(Address, Address, Address, Address) Address) AddressOption {
+	return noneAddress
+}
+
 // some
 func (rcv AddressSome) Get() Address {
 	return rcv.a
@@ -115,4 +130,28 @@ func (rcv AddressSome) ContainsNot(a Address) bool {
 
 func (rcv AddressSome) FoldToString(zero string, fn func(Address) string) string {
 	return fn(rcv.Get())
+}
+
+func (rcv AddressSome) Apply2(a AddressOption, fn func(Address, Address) Address) AddressOption {
+	if rcv.IsDefined() && a.IsDefined() {
+		return AddressSome{fn(rcv.Get(), a.Get())}
+	} else {
+		return noneAddress
+	}
+}
+
+func (rcv AddressSome) Apply3(a AddressOption, b AddressOption, fn func(Address, Address, Address) Address) AddressOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return AddressSome{fn(rcv.Get(), a.Get(), b.Get())}
+	} else {
+		return noneAddress
+	}
+}
+
+func (rcv AddressSome) Apply4(a AddressOption, b AddressOption, c AddressOption, fn func(Address, Address, Address, Address) Address) AddressOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return AddressSome{fn(rcv.Get(), a.Get(), b.Get(), c.Get())}
+	} else {
+		return noneAddress
+	}
 }

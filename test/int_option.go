@@ -16,6 +16,9 @@ type IntOption interface {
 	Contains(a int) bool
 	ContainsNot(a int) bool
 	FoldToString(zero string, fn func(int) string) string
+	Apply2(a IntOption, fn func(int, int) int) IntOption
+	Apply3(a IntOption, b IntOption, fn func(int, int, int) int) IntOption
+	Apply4(a IntOption, b IntOption, c IntOption, fn func(int, int, int, int) int) IntOption
 }
 
 type IntSome struct {
@@ -75,6 +78,18 @@ func (rcv IntNone) FoldToString(zero string, fn func(int) string) string {
 	return zero
 }
 
+func (rcv IntNone) Apply2(a IntOption, fn func(int, int) int) IntOption {
+	return noneInt
+}
+
+func (rcv IntNone) Apply3(a IntOption, b IntOption, fn func(int, int, int) int) IntOption {
+	return noneInt
+}
+
+func (rcv IntNone) Apply4(a IntOption, b IntOption, c IntOption, fn func(int, int, int, int) int) IntOption {
+	return noneInt
+}
+
 // some
 func (rcv IntSome) Get() int {
 	return rcv.a
@@ -115,4 +130,28 @@ func (rcv IntSome) ContainsNot(a int) bool {
 
 func (rcv IntSome) FoldToString(zero string, fn func(int) string) string {
 	return fn(rcv.Get())
+}
+
+func (rcv IntSome) Apply2(a IntOption, fn func(int, int) int) IntOption {
+	if rcv.IsDefined() && a.IsDefined() {
+		return IntSome{fn(rcv.Get(), a.Get())}
+	} else {
+		return noneInt
+	}
+}
+
+func (rcv IntSome) Apply3(a IntOption, b IntOption, fn func(int, int, int) int) IntOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return IntSome{fn(rcv.Get(), a.Get(), b.Get())}
+	} else {
+		return noneInt
+	}
+}
+
+func (rcv IntSome) Apply4(a IntOption, b IntOption, c IntOption, fn func(int, int, int, int) int) IntOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return IntSome{fn(rcv.Get(), a.Get(), b.Get(), c.Get())}
+	} else {
+		return noneInt
+	}
 }

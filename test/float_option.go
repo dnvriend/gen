@@ -16,6 +16,9 @@ type FloatOption interface {
 	Contains(a Float) bool
 	ContainsNot(a Float) bool
 	FoldToString(zero string, fn func(Float) string) string
+	Apply2(a FloatOption, fn func(Float, Float) Float) FloatOption
+	Apply3(a FloatOption, b FloatOption, fn func(Float, Float, Float) Float) FloatOption
+	Apply4(a FloatOption, b FloatOption, c FloatOption, fn func(Float, Float, Float, Float) Float) FloatOption
 }
 
 type FloatSome struct {
@@ -75,6 +78,18 @@ func (rcv FloatNone) FoldToString(zero string, fn func(Float) string) string {
 	return zero
 }
 
+func (rcv FloatNone) Apply2(a FloatOption, fn func(Float, Float) Float) FloatOption {
+	return noneFloat
+}
+
+func (rcv FloatNone) Apply3(a FloatOption, b FloatOption, fn func(Float, Float, Float) Float) FloatOption {
+	return noneFloat
+}
+
+func (rcv FloatNone) Apply4(a FloatOption, b FloatOption, c FloatOption, fn func(Float, Float, Float, Float) Float) FloatOption {
+	return noneFloat
+}
+
 // some
 func (rcv FloatSome) Get() Float {
 	return rcv.a
@@ -115,4 +130,28 @@ func (rcv FloatSome) ContainsNot(a Float) bool {
 
 func (rcv FloatSome) FoldToString(zero string, fn func(Float) string) string {
 	return fn(rcv.Get())
+}
+
+func (rcv FloatSome) Apply2(a FloatOption, fn func(Float, Float) Float) FloatOption {
+	if rcv.IsDefined() && a.IsDefined() {
+		return FloatSome{fn(rcv.Get(), a.Get())}
+	} else {
+		return noneFloat
+	}
+}
+
+func (rcv FloatSome) Apply3(a FloatOption, b FloatOption, fn func(Float, Float, Float) Float) FloatOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return FloatSome{fn(rcv.Get(), a.Get(), b.Get())}
+	} else {
+		return noneFloat
+	}
+}
+
+func (rcv FloatSome) Apply4(a FloatOption, b FloatOption, c FloatOption, fn func(Float, Float, Float, Float) Float) FloatOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return FloatSome{fn(rcv.Get(), a.Get(), b.Get(), c.Get())}
+	} else {
+		return noneFloat
+	}
 }

@@ -16,6 +16,9 @@ type CatOption interface {
 	Contains(a Cat) bool
 	ContainsNot(a Cat) bool
 	FoldToString(zero string, fn func(Cat) string) string
+	Apply2(a CatOption, fn func(Cat, Cat) Cat) CatOption
+	Apply3(a CatOption, b CatOption, fn func(Cat, Cat, Cat) Cat) CatOption
+	Apply4(a CatOption, b CatOption, c CatOption, fn func(Cat, Cat, Cat, Cat) Cat) CatOption
 }
 
 type CatSome struct {
@@ -75,6 +78,18 @@ func (rcv CatNone) FoldToString(zero string, fn func(Cat) string) string {
 	return zero
 }
 
+func (rcv CatNone) Apply2(a CatOption, fn func(Cat, Cat) Cat) CatOption {
+	return noneCat
+}
+
+func (rcv CatNone) Apply3(a CatOption, b CatOption, fn func(Cat, Cat, Cat) Cat) CatOption {
+	return noneCat
+}
+
+func (rcv CatNone) Apply4(a CatOption, b CatOption, c CatOption, fn func(Cat, Cat, Cat, Cat) Cat) CatOption {
+	return noneCat
+}
+
 // some
 func (rcv CatSome) Get() Cat {
 	return rcv.a
@@ -115,4 +130,28 @@ func (rcv CatSome) ContainsNot(a Cat) bool {
 
 func (rcv CatSome) FoldToString(zero string, fn func(Cat) string) string {
 	return fn(rcv.Get())
+}
+
+func (rcv CatSome) Apply2(a CatOption, fn func(Cat, Cat) Cat) CatOption {
+	if rcv.IsDefined() && a.IsDefined() {
+		return CatSome{fn(rcv.Get(), a.Get())}
+	} else {
+		return noneCat
+	}
+}
+
+func (rcv CatSome) Apply3(a CatOption, b CatOption, fn func(Cat, Cat, Cat) Cat) CatOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return CatSome{fn(rcv.Get(), a.Get(), b.Get())}
+	} else {
+		return noneCat
+	}
+}
+
+func (rcv CatSome) Apply4(a CatOption, b CatOption, c CatOption, fn func(Cat, Cat, Cat, Cat) Cat) CatOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return CatSome{fn(rcv.Get(), a.Get(), b.Get(), c.Get())}
+	} else {
+		return noneCat
+	}
 }

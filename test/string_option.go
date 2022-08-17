@@ -16,6 +16,9 @@ type StringOption interface {
 	Contains(a string) bool
 	ContainsNot(a string) bool
 	FoldToString(zero string, fn func(string) string) string
+	Apply2(a StringOption, fn func(string, string) string) StringOption
+	Apply3(a StringOption, b StringOption, fn func(string, string, string) string) StringOption
+	Apply4(a StringOption, b StringOption, c StringOption, fn func(string, string, string, string) string) StringOption
 }
 
 type StringSome struct {
@@ -75,6 +78,18 @@ func (rcv StringNone) FoldToString(zero string, fn func(string) string) string {
 	return zero
 }
 
+func (rcv StringNone) Apply2(a StringOption, fn func(string, string) string) StringOption {
+	return noneString
+}
+
+func (rcv StringNone) Apply3(a StringOption, b StringOption, fn func(string, string, string) string) StringOption {
+	return noneString
+}
+
+func (rcv StringNone) Apply4(a StringOption, b StringOption, c StringOption, fn func(string, string, string, string) string) StringOption {
+	return noneString
+}
+
 // some
 func (rcv StringSome) Get() string {
 	return rcv.a
@@ -115,4 +130,28 @@ func (rcv StringSome) ContainsNot(a string) bool {
 
 func (rcv StringSome) FoldToString(zero string, fn func(string) string) string {
 	return fn(rcv.Get())
+}
+
+func (rcv StringSome) Apply2(a StringOption, fn func(string, string) string) StringOption {
+	if rcv.IsDefined() && a.IsDefined() {
+		return StringSome{fn(rcv.Get(), a.Get())}
+	} else {
+		return noneString
+	}
+}
+
+func (rcv StringSome) Apply3(a StringOption, b StringOption, fn func(string, string, string) string) StringOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() {
+		return StringSome{fn(rcv.Get(), a.Get(), b.Get())}
+	} else {
+		return noneString
+	}
+}
+
+func (rcv StringSome) Apply4(a StringOption, b StringOption, c StringOption, fn func(string, string, string, string) string) StringOption {
+	if rcv.IsDefined() && a.IsDefined() && b.IsDefined() && c.IsDefined() {
+		return StringSome{fn(rcv.Get(), a.Get(), b.Get(), c.Get())}
+	} else {
+		return noneString
+	}
 }
